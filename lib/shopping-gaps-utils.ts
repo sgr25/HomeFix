@@ -1,5 +1,5 @@
 import type { ClothingType, Season } from '@/types';
-import { CLOTHING_TYPE_VALUES, clothingTypeLabel, getChildCurrentSize, normalizeClothingType, seasonLabel } from '@/lib/clothes-utils';
+import { CLOTHING_TYPE_VALUES, clothingMatchesChildGender, clothingTypeLabel, getChildCurrentSize, normalizeClothingType, seasonLabel } from '@/lib/clothes-utils';
 import type { Child, ClothingItem } from '@/types';
 
 export interface ShoppingGapCategory {
@@ -29,6 +29,7 @@ const SEASONS: Season[] = ['summer', 'winter', 'transition'];
 
 function itemMatchesChild(item: ClothingItem, child: Child, size: string): boolean {
   if (item.size !== size) return false;
+  if (!clothingMatchesChildGender(item.gender, child.gender)) return false;
   if (item.child_name === child.name) return true;
   if (item.child_name == null) return true;
   return false;

@@ -128,6 +128,15 @@ export function genderFromChild(child: Pick<Child, 'gender'> | null | undefined)
   return child?.gender && isChildGender(child.gender) ? child.gender : '';
 }
 
+export function clothingMatchesChildGender(
+  itemGender: Gender | undefined,
+  childGender: ChildGender | null
+): boolean {
+  const g = normalizeGender(itemGender);
+  if (!childGender) return true;
+  return g === 'unassigned' || g === childGender;
+}
+
 export function genderDefaultFromChildName(
   childName: string,
   childrenList: Pick<Child, 'name' | 'gender'>[]

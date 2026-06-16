@@ -17,19 +17,27 @@ export async function POST(request: NextRequest, { params }: Params) {
 
   const { data: child } = await supabase
     .from('children')
-    .select('name')
+    .select('name, gender')
     .eq('name', name)
     .eq('active', true)
     .maybeSingle();
 
   if (!child) return NextResponse.json({ error: 'ילד לא נמצא' }, { status: 404 });
 
+  let boxedQuery = supabase
+    .from('clothes')
+    .select('id, clothing_type, season, box_id, boxes(box_number)')
+    .eq('status', 'in_box')
+    .eq('size', new_size);
+
+  if (child.gender === 'boys') {
+    boxedQuery = boxedQuery.in('gender', ['boys', 'unassigned']);
+  } else if (child.gender === 'girls') {
+    boxedQuery = boxedQuery.in('gender', ['girls', 'unassigned']);
+  }
+
   const [{ data: boxedRaw, error: boxErr }, { data: outdatedRaw, error: closetErr }] = await Promise.all([
-    supabase
-      .from('clothes')
-      .select('id, clothing_type, season, box_id, boxes(box_number)')
-      .eq('status', 'in_box')
-      .eq('size', new_size),
+    boxedQuery,
     supabase
       .from('clothes')
       .select('id')

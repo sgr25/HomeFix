@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     supabase.from('children').select('*').eq('active', true).order('name'),
     supabase
       .from('clothes')
-      .select('id, child_name, size, season, clothing_type, status')
+      .select('id, child_name, size, season, clothing_type, status, gender')
       .in('status', ['in_closet', 'laundry', 'in_box']),
   ]);
 
