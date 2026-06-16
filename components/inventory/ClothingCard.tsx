@@ -34,7 +34,7 @@ const seasonLabel: Record<string, string> = {
 const statusLabel: Record<string, string> = {
   in_closet: 'בארון',
   laundry: 'כביסה',
-  in_box: 'בקופסה',
+  in_box: 'בארגז',
 };
 
 const statusColor: Record<string, string> = {
@@ -371,7 +371,7 @@ export default function ClothingCard({
                 <p className="text-[10px] text-slate-500 truncate">{item.child_name}</p>
               )}
               {item.boxes && (
-                <p className="text-[10px] text-slate-500">קופסה #{item.boxes.box_number}</p>
+                <p className="text-[10px] text-slate-500">ארגז #{item.boxes.box_number}</p>
               )}
               {item.set_name && (
                 <p className="text-[10px] text-indigo-600 font-medium truncate">סט: {item.set_name}</p>
@@ -516,16 +516,16 @@ export default function ClothingCard({
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600">קופסה</label>
+                    <label className="text-xs font-medium text-slate-600">ארגז</label>
                     <Select value={editState.box_id || '__none__'} onValueChange={(v) => set('box_id')(v === '__none__' ? '' : v)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="בחר קופסה" />
+                        <SelectValue placeholder="בחר ארגז" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__none__">ללא קופסה</SelectItem>
+                        <SelectItem value="__none__">ללא ארגז</SelectItem>
                         {boxes.map((b) => (
                           <SelectItem key={b.id} value={b.id}>
-                            קופסה #{b.box_number}{b.description ? ` — ${b.description}` : ''}
+                            ארגז #{b.box_number}{b.description ? ` — ${b.description}` : ''}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -570,7 +570,7 @@ export default function ClothingCard({
                   <p><span className="font-semibold text-slate-700">ילד/ה: </span>{item.child_name}</p>
                 )}
                 {item.boxes && (
-                  <p><span className="font-semibold text-slate-700">קופסה: </span>#{item.boxes.box_number}{item.boxes.description ? ` — ${item.boxes.description}` : ''}</p>
+                  <p><span className="font-semibold text-slate-700">ארגז: </span>#{item.boxes.box_number}{item.boxes.description ? ` — ${item.boxes.description}` : ''}</p>
                 )}
                 {item.set_name && (
                   <p><span className="font-semibold text-slate-700">שם הסט: </span><span className="text-indigo-600">{item.set_name}</span></p>

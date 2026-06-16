@@ -36,7 +36,7 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
     .eq('box_id', id);
 
   if (count && count > 0) {
-    return NextResponse.json({ error: 'לא ניתן למחוק קופסה עם פריטים' }, { status: 409 });
+    return NextResponse.json({ error: 'לא ניתן למחוק ארגז עם פריטים' }, { status: 409 });
   }
 
   const { error } = await supabase.from('boxes').delete().eq('id', id);

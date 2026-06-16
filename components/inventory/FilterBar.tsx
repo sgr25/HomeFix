@@ -80,7 +80,7 @@ export default function FilterBar({ children, filters, onChange, setsForAll = fa
             <SelectItem value={ALL}>כל הסטטוסים</SelectItem>
             <SelectItem value="in_closet">בארון</SelectItem>
             <SelectItem value="laundry">כביסה</SelectItem>
-            <SelectItem value="in_box">בקופסה</SelectItem>
+            <SelectItem value="in_box">בארגז</SelectItem>
           </SelectContent>
         </Select>
       </div>

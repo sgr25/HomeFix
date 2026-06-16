@@ -24,6 +24,7 @@ export default function DashboardPage() {
 
   const [seasonal, setSeasonal]     = useState('');
   const [seasonalLoading, setSeasonalLoading] = useState(false);
+  const [seasonalError, setSeasonalError] = useState<string | null>(null);
 
   // Load stats
   useEffect(() => {
@@ -101,14 +102,30 @@ export default function DashboardPage() {
   const generateSeasonalReport = async () => {
     setSeasonalLoading(true);
     setSeasonal('');
+    setSeasonalError(null);
     try {
       const res = await fetch('/api/agents/seasonal', { method: 'POST' });
-      const { report } = await res.json();
-      setSeasonal(report ?? '');
-    } catch {
-      setSeasonal('שגיאה בייצור הדוח');
+      const body = await res.json();
+
+      if (!res.ok) {
+        throw new Error(typeof body.error === 'string' ? body.error : 'שגיאה בהפקת הדוח העונתי');
+      }
+
+      if (!body.report) {
+        throw new Error('השרת לא החזיר תוכן עבור הדוח');
+      }
+
+      setSeasonal(body.report);
+    } catch (err) {
+      console.error(err);
+      setSeasonalError(
+        err instanceof Error
+          ? err.message
+          : 'לא הצלחנו לייצר את הדוח העונתי. אנא נסה שנית מאוחר יותר.'
+      );
+    } finally {
+      setSeasonalLoading(false);
     }
-    setSeasonalLoading(false);
   };
 
   return (
@@ -130,7 +147,7 @@ export default function DashboardPage() {
         {[
           { label: 'סה״כ פריטים', value: stats.total,   href: '/inventory',              icon: Shirt,         color: 'text-blue-600',   bg: 'bg-blue-50' },
           { label: 'בכביסה',      value: stats.laundry,  href: '/laundry',                icon: WashingMachine, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-          { label: 'בקופסאות',    value: stats.inBox,    href: '/boxes', icon: Package,        color: 'text-slate-600',  bg: 'bg-slate-100' },
+          { label: 'בארגזים',    value: stats.inBox,    href: '/boxes', icon: Package,        color: 'text-slate-600',  bg: 'bg-slate-100' },
         ].map(({ label, value, href, icon: Icon, color, bg }) => (
           <Link
             key={label}
@@ -181,7 +198,7 @@ export default function DashboardPage() {
               <Sparkles className="w-5 h-5 text-amber-500" />
               דוח היערכות עונתית
             </h2>
-            <p className="text-sm text-slate-500">ניתוח אילו קופסאות כדאי להוציא לקראת העונה</p>
+            <p className="text-sm text-slate-500">ניתוח אילו ארגזים כדאי להוציא לקראת העונה</p>
           </div>
           <Button
             onClick={generateSeasonalReport}
@@ -193,6 +210,16 @@ export default function DashboardPage() {
             צור דוח
           </Button>
         </div>
+
+        {seasonalError && (
+          <div
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+            dir="rtl"
+          >
+            {seasonalError}
+          </div>
+        )}
 
         {seasonal && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">

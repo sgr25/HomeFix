@@ -40,7 +40,7 @@ export default function BoxesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ box_number: Number(newBoxNum), description: newBoxDesc || null }),
       });
-      notify.saved('הקופסה נוצרה');
+      notify.saved('הארגז נוצר');
       setNewBoxNum('');
       setNewBoxDesc('');
       load();
@@ -53,11 +53,11 @@ export default function BoxesPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6" dir="rtl">
-      <PageHeader title="קופסאות אחסון" description="ניהול קופסאות ותוכנן" />
+      <PageHeader title="ארגזי אחסון" description="ניהול ארגזים ותוכנן" />
 
       <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-3 items-end">
         <div>
-          <label className="text-xs text-slate-500 block mb-1">מספר קופסה חדשה</label>
+          <label className="text-xs text-slate-500 block mb-1">מספר ארגז חדש</label>
           <input
             type="number"
             min={1}
@@ -79,7 +79,7 @@ export default function BoxesPage() {
         </div>
         <Button onClick={createBox} disabled={creating || !newBoxNum} className="gap-1">
           <Plus className="w-4 h-4" />
-          צור קופסה
+          צור ארגז
         </Button>
       </div>
 
@@ -88,7 +88,7 @@ export default function BoxesPage() {
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-2xl" />)}
         </div>
       ) : boxes.length === 0 ? (
-        <EmptyState title="אין קופסאות עדיין" description="צור קופסה ראשונה למעלה" />
+        <EmptyState title="אין ארגזים עדיין" description="צור ארגז ראשון למעלה" />
       ) : (
         <div className="space-y-3">
           {boxes.map((box) => (

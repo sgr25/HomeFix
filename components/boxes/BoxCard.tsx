@@ -31,7 +31,7 @@ export default function BoxCard({ box, items, onUpdated }: Props) {
 <!DOCTYPE html><html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>קופסה #${box.box_number}</title>
+<title>ארגז #${box.box_number}</title>
 <style>
   body { font-family: Arial, sans-serif; padding: 20px; direction: rtl; }
   h1 { font-size: 22px; margin-bottom: 4px; }
@@ -45,7 +45,7 @@ export default function BoxCard({ box, items, onUpdated }: Props) {
 </style>
 </head>
 <body>
-<h1>קופסה #${box.box_number}</h1>
+<h1>ארגז #${box.box_number}</h1>
 <p>${box.description ?? ''} — ${items.length} פריטים</p>
 <div class="grid">
 ${items.map((i) => `
@@ -92,7 +92,7 @@ ${items.map((i) => `
   const deleteBox = async () => {
     try {
       await fetchJson(`/api/boxes/${box.id}`, { method: 'DELETE' });
-      notify.deleted('הקופסה נמחקה');
+      notify.deleted('הארגז נמחק');
       onUpdated?.();
     } catch (err) {
       notify.error(err instanceof Error ? err.message : undefined);
@@ -117,7 +117,7 @@ ${items.map((i) => `
                   value={boxNumber}
                   onChange={(e) => setBoxNumber(e.target.value)}
                   className="h-8 w-20 text-sm"
-                  aria-label="מספר קופסה"
+                  aria-label="מספר ארגז"
                 />
                 <Input
                   value={description}
@@ -125,12 +125,12 @@ ${items.map((i) => `
                   className="h-8 text-sm flex-1 min-w-32"
                   placeholder="תיאור..."
                   dir="rtl"
-                  aria-label="תיאור קופסה"
+                  aria-label="תיאור ארגז"
                 />
               </div>
             ) : (
               <>
-                <p className="font-bold text-slate-800 text-sm">קופסה #{box.box_number}</p>
+                <p className="font-bold text-slate-800 text-sm">ארגז #{box.box_number}</p>
                 {box.description && (
                   <p className="text-xs text-slate-500">{box.description}</p>
                 )}
@@ -152,7 +152,7 @@ ${items.map((i) => `
             </>
           ) : (
             <>
-              <Button size="icon" variant="outline" className="w-8 h-8" onClick={() => setEditing(true)} aria-label="ערוך קופסה">
+              <Button size="icon" variant="outline" className="w-8 h-8" onClick={() => setEditing(true)} aria-label="ערוך ארגז">
                 <Pencil className="w-4 h-4" />
               </Button>
               <Button size="icon" variant="outline" className="w-8 h-8" onClick={handlePrint} aria-label="הדפס מניפסט">
@@ -168,7 +168,7 @@ ${items.map((i) => `
                   </Button>
                 </>
               ) : (
-                <Button size="icon" variant="outline" className="w-8 h-8 text-red-500" onClick={() => setConfirmDelete(true)} aria-label="מחק קופסה">
+                <Button size="icon" variant="outline" className="w-8 h-8 text-red-500" onClick={() => setConfirmDelete(true)} aria-label="מחק ארגז">
                   <Trash2 className="w-4 h-4" />
                 </Button>
               )}
@@ -183,7 +183,7 @@ ${items.map((i) => `
       {expanded && (
         <div className="border-t border-slate-100 px-5 py-4">
           {items.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">הקופסה ריקה</p>
+            <p className="text-sm text-slate-400 text-center py-4">הארגז ריק</p>
           ) : (
             <div className="flex flex-wrap gap-3">
               {items.map((item) => (

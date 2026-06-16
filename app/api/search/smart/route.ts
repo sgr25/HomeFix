@@ -27,14 +27,14 @@ export async function POST(request: NextRequest) {
 
   const childrenNames = (activeChildren ?? []).map((c: { name: string }) => c.name);
   const boxList = (boxes ?? []).map((b: { box_number: number; description: string | null }) =>
-    `קופסה #${b.box_number}${b.description ? ` (${b.description})` : ''}`
+    `ארגז #${b.box_number}${b.description ? ` (${b.description})` : ''}`
   );
 
   const prompt = `
 אתה עוזר חכם לניהול מלאי בגדים. המשתמש שלח שאילתת חיפוש בעברית.
 
 **ילדים פעילים במערכת:** ${childrenNames.join(', ') || 'אין'}
-**קופסאות אחסון:** ${boxList.join(', ') || 'אין'}
+**ארגזי אחסון:** ${boxList.join(', ') || 'אין'}
 
 **שאילתת המשתמש:** "${query}"
 
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   "free_text_query": "<מילות חיפוש חופשיות אם יש (צבע, סוג בגד, וכד'), אחרת אל תכלול>"
 }
 
-מיפוי סטטוסים: "ארון"/"בארון" → in_closet, "כביסה" → laundry, "קופסה"/"מאוחסן" → in_box.
+מיפוי סטטוסים: "ארון"/"בארון" → in_closet, "כביסה" → laundry, "ארגז"/"מאוחסן" → in_box.
 מיפוי עונות: "קיץ"/"חם" → summer, "חורף"/"קר" → winter, "אביב"/"סתיו"/"מעבר" → transition.
 השתמש אך ורק בשמות ילדים שמופיעים ברשימה. החזר JSON בלבד.
 `;

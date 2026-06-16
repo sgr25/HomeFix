@@ -45,7 +45,7 @@ export default function OnboardingWizard() {
   const steps = [
     {
       title: 'ברוכים הבאים לארון חכם!',
-      body: 'ננהל יחד את בגדי המשפחה — ילדים, מידות, קופסאות וכביסה.',
+      body: 'ננהל יחד את בגדי המשפחה — ילדים, מידות, ארגזים וכביסה.',
       action: () => setStep(1),
       actionLabel: 'בואו נתחיל',
     },
@@ -64,10 +64,10 @@ export default function OnboardingWizard() {
       icon: <Upload className="w-10 h-10 text-indigo-500" />,
     },
     {
-      title: 'שלב 3: קופסאות (אופציונלי)',
-      body: 'ארגן בגדי עונה בקופסאות ממוספרות.',
+      title: 'שלב 3: ארגזים (אופציונלי)',
+      body: 'ארגן בגדי עונה בארגזים ממוספרים.',
       action: () => { finish(); router.push('/boxes'); },
-      actionLabel: 'לקופסאות',
+      actionLabel: 'לארגזים',
       icon: <Box className="w-10 h-10 text-blue-500" />,
     },
   ];

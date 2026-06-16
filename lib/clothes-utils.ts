@@ -9,7 +9,7 @@ const seasonLabel: Record<Season, string> = {
 const statusLabel: Record<ClothingStatus, string> = {
   in_closet: 'בארון',
   laundry: 'כביסה',
-  in_box: 'בקופסה',
+  in_box: 'בארגז',
 };
 
 export type SortKey = 'updated_at' | 'size' | 'child_name' | 'season';

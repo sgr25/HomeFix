@@ -93,7 +93,7 @@ export default function AddClothingDialog({ childrenList, boxes, onSaved }: Prop
       return;
     }
     if (item.status === 'in_box' && !item.box_number) {
-      setItem((prev) => ({ ...prev, error: 'נא לבחור קופסה' }));
+      setItem((prev) => ({ ...prev, error: 'נא לבחור ארגז' }));
       return;
     }
 

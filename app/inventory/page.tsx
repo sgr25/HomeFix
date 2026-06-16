@@ -312,11 +312,11 @@ function InventoryContent() {
           {boxes.length > 0 && (
             <Select onValueChange={(boxId) => bulkUpdate({ status: 'in_box', box_id: boxId })}>
               <SelectTrigger className="h-8 w-36 text-xs">
-                <SelectValue placeholder="לקופסה..." />
+                <SelectValue placeholder="לארגז..." />
               </SelectTrigger>
               <SelectContent>
                 {boxes.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>קופסה #{b.box_number}</SelectItem>
+                  <SelectItem key={b.id} value={b.id}>ארגז #{b.box_number}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

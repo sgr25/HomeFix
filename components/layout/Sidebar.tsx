@@ -17,7 +17,7 @@ const navItems = [
   { href: '/',          label: 'לוח הבקרה',  icon: LayoutDashboard },
   { href: '/children',  label: 'ילדים',       icon: Users },
   { href: '/inventory', label: 'בגדים',       icon: Shirt },
-  { href: '/boxes',     label: 'קופסאות',     icon: Box },
+  { href: '/boxes',     label: 'ארגזים',     icon: Box },
   { href: '/laundry',   label: 'כביסה',       icon: WashingMachine },
 ];
 

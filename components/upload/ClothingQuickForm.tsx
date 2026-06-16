@@ -125,7 +125,7 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
                 : 'border-slate-300 text-slate-600 hover:border-slate-500 hover:bg-slate-50'
             )}
           >
-            {st === 'in_closet' ? 'בארון' : 'בקופסה'}
+            {st === 'in_closet' ? 'בארון' : 'בארגז'}
           </button>
         ))}
       </div>
@@ -146,12 +146,12 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
       ) : (
         <Select value={item.box_number} onValueChange={set('box_number')}>
           <SelectTrigger className="h-8 text-xs">
-            <SelectValue placeholder="מספר קופסה" />
+            <SelectValue placeholder="מספר ארגז" />
           </SelectTrigger>
           <SelectContent>
             {boxes.map((b) => (
               <SelectItem key={b.id} value={String(b.box_number)} className="text-xs">
-                קופסה #{b.box_number}{b.description ? ` — ${b.description}` : ''}
+                ארגז #{b.box_number}{b.description ? ` — ${b.description}` : ''}
               </SelectItem>
             ))}
           </SelectContent>

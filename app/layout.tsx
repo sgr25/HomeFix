@@ -8,7 +8,7 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 
 export const metadata: Metadata = {
   title: 'ארון חכם — ניהול מלאי בגדים',
-  description: 'ניהול חכם של בגדי ילדים, קופסאות אחסון, ומעבר עונות',
+  description: 'ניהול חכם של בגדי ילדים, ארגזי אחסון, ומעבר עונות',
   appleWebApp: { capable: true, title: 'ארון חכם' },
 };
 
