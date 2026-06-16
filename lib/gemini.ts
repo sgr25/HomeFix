@@ -2,8 +2,8 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-export const flashModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-export const proModel   = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+export const flashModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+export const proModel   = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
 
 /**
  * responseSchema for the Wardrobe Stylist Agent.
@@ -31,7 +31,7 @@ export const stylistResponseSchema = {
  */
 export function getStylistModel() {
   return genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: stylistResponseSchema as never,

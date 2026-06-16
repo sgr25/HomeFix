@@ -8,7 +8,6 @@ import { Loader2, Sparkles, Package, WashingMachine, Shirt } from 'lucide-react'
 import WeeklyStyleMatrix from '@/components/dashboard/WeeklyStyleMatrix';
 import SetupChecklist from '@/components/onboarding/SetupChecklist';
 import { fetchJson } from '@/lib/api';
-import { notify } from '@/lib/toast';
 import type { DayOutfit, WeatherDay, ClothingItem, Child, Box } from '@/types';
 
 export default function DashboardPage() {
@@ -16,6 +15,7 @@ export default function DashboardPage() {
   const [forecast, setForecast]     = useState<WeatherDay[] | null>(null);
   const [clothesMap, setClothesMap] = useState<Record<string, ClothingItem>>({});
   const [stylistLoading, setStylistLoading] = useState(false);
+  const [stylistError, setStylistError] = useState<string | null>(null);
 
   const [stats, setStats] = useState({ total: 0, laundry: 0, inBox: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
@@ -48,16 +48,37 @@ export default function DashboardPage() {
     }).catch(() => setStatsLoading(false));
   }, []);
 
-  const loadStylist = useCallback(() => {
+  const STYLIST_ERROR_MSG =
+    'לא הצלחנו לייצר תוכנית לבוש. ודא שיש בגדים בארון, שהמפתחות תקינים, או נסה שנית מאוחר יותר';
+
+  const loadStylist = useCallback(async () => {
+    setStylistError(null);
     setStylistLoading(true);
-    fetch('/api/agents/stylist')
-      .then((r) => r.json())
-      .then(({ outfits: o, forecast: f }) => {
-        setOutfits(Array.isArray(o) ? o : []);
-        setForecast(Array.isArray(f) ? f : null);
-        setStylistLoading(false);
-      })
-      .catch(() => setStylistLoading(false));
+    try {
+      const r = await fetch('/api/agents/stylist');
+      const body = await r.json();
+      if (!r.ok) {
+        throw new Error(
+          typeof body.error === 'string' ? body.error : 'שגיאה בחיבור לסוכן הסטייליסט'
+        );
+      }
+      const outfitsList = Array.isArray(body.outfits) ? body.outfits : [];
+      if (outfitsList.length === 0) {
+        setStylistError(STYLIST_ERROR_MSG);
+        setOutfits([]);
+        setForecast(null);
+      } else {
+        setOutfits(outfitsList);
+        setForecast(Array.isArray(body.forecast) ? body.forecast : null);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : STYLIST_ERROR_MSG;
+      setStylistError(msg === 'שגיאה בחיבור לסוכן הסטייליסט' ? STYLIST_ERROR_MSG : msg);
+      setOutfits([]);
+      setForecast(null);
+    } finally {
+      setStylistLoading(false);
+    }
   }, []);
 
   const handleWornToday = async (_date: string, itemIds: string[]) => {
@@ -133,6 +154,15 @@ export default function DashboardPage() {
 
       {/* Stylist matrix */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        {stylistError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+            dir="rtl"
+          >
+            {stylistError}
+          </div>
+        )}
         <WeeklyStyleMatrix
           outfits={outfits}
           forecast={forecast}
