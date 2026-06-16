@@ -8,7 +8,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const supabase = await createClient();
   const body = await request.json();
 
-  const allowed = ['child_name', 'size', 'season', 'image_url', 'status', 'box_id'];
+  const allowed = ['child_name', 'size', 'season', 'image_url', 'status', 'box_id', 'set_name'];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) updates[key] = body[key];

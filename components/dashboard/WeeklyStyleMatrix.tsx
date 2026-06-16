@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Loader2, CheckCheck, RefreshCw } from 'lucide-react';
+import { Loader2, CheckCheck, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import WeatherIcon from './WeatherIcon';
@@ -42,11 +42,17 @@ export default function WeeklyStyleMatrix({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-800">המלצת לבוש שבועית</h2>
-        <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading} className="gap-1">
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          רענן
+        <Button
+          onClick={onRefresh}
+          disabled={loading}
+          className="gap-2 bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md px-5"
+        >
+          {loading
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <Sparkles className="w-4 h-4" />}
+          {loading ? 'מייצר תוכנית...' : 'צור תוכנית הלבשה שבועית'}
         </Button>
       </div>
 
@@ -56,7 +62,9 @@ export default function WeeklyStyleMatrix({
         </div>
       ) : outfits.length === 0 ? (
         <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
-          <p className="text-sm">לחץ על "רענן" לקבלת המלצות לבוש</p>
+          <Sparkles className="w-8 h-8 text-indigo-300 mx-auto mb-3" />
+          <p className="text-sm font-medium text-slate-500">לחץ על הכפתור כדי לייצר תוכנית הלבשה שבועית</p>
+          <p className="text-xs text-slate-400 mt-1">המערכת תציע תלבושות מותאמות לפי מזג האוויר</p>
         </div>
       ) : (
         <div className="overflow-x-auto">

@@ -1,6 +1,9 @@
 'use client';
 
+import { Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { Child } from '@/types';
 
 interface Filters {
@@ -13,51 +16,74 @@ interface Props {
   children: Child[];
   filters: Filters;
   onChange: (filters: Filters) => void;
+  setsForAll?: boolean;
+  onSetsForAllChange?: (value: boolean) => void;
 }
 
 const ALL = '__all__';
 
-export default function FilterBar({ children, filters, onChange }: Props) {
+export default function FilterBar({ children, filters, onChange, setsForAll = false, onSetsForAllChange }: Props) {
   const set = (key: keyof Filters) => (value: string) =>
     onChange({ ...filters, [key]: value === ALL ? '' : value });
 
   return (
-    <div className="flex flex-wrap gap-3 items-center" dir="rtl">
-      <Select value={filters.child || ALL} onValueChange={set('child')}>
-        <SelectTrigger className="w-40">
-          <SelectValue placeholder="כל הילדים" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>כל הילדים</SelectItem>
-          {children.map((c) => (
-            <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-3" dir="rtl">
+      {onSetsForAllChange && (
+        <Button
+          variant={setsForAll ? 'default' : 'outline'}
+          className={cn(
+            'gap-2 font-semibold transition-all',
+            setsForAll
+              ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md'
+              : 'border-indigo-300 text-indigo-700 hover:bg-indigo-50'
+          )}
+          onClick={() => onSetsForAllChange(!setsForAll)}
+        >
+          <Users className="w-4 h-4" />
+          סטים שזמינים לכולם
+          {setsForAll && (
+            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full">פעיל</span>
+          )}
+        </Button>
+      )}
 
-      <Select value={filters.season || ALL} onValueChange={set('season')}>
-        <SelectTrigger className="w-36">
-          <SelectValue placeholder="כל העונות" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>כל העונות</SelectItem>
-          <SelectItem value="summer">קיץ</SelectItem>
-          <SelectItem value="winter">חורף</SelectItem>
-          <SelectItem value="transition">מעבר</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className={cn('flex flex-wrap gap-3 items-center', setsForAll && 'opacity-40 pointer-events-none')}>
+        <Select value={filters.child || ALL} onValueChange={set('child')}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="כל הילדים" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>כל הילדים</SelectItem>
+            {children.map((c) => (
+              <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-      <Select value={filters.status || ALL} onValueChange={set('status')}>
-        <SelectTrigger className="w-36">
-          <SelectValue placeholder="כל הסטטוסים" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL}>כל הסטטוסים</SelectItem>
-          <SelectItem value="in_closet">בארון</SelectItem>
-          <SelectItem value="laundry">כביסה</SelectItem>
-          <SelectItem value="in_box">בקופסה</SelectItem>
-        </SelectContent>
-      </Select>
+        <Select value={filters.season || ALL} onValueChange={set('season')}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="כל העונות" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>כל העונות</SelectItem>
+            <SelectItem value="summer">קיץ</SelectItem>
+            <SelectItem value="winter">חורף</SelectItem>
+            <SelectItem value="transition">מעבר</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filters.status || ALL} onValueChange={set('status')}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="כל הסטטוסים" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>כל הסטטוסים</SelectItem>
+            <SelectItem value="in_closet">בארון</SelectItem>
+            <SelectItem value="laundry">כביסה</SelectItem>
+            <SelectItem value="in_box">בקופסה</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }

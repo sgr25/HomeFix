@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Dropzone from '@/components/upload/Dropzone';
 import ClothingQuickForm, { type PendingItem } from '@/components/upload/ClothingQuickForm';
 import { Button } from '@/components/ui/button';
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, Save, PlusCircle } from 'lucide-react';
 import type { Child, Box } from '@/types';
 
 export default function UploadPage() {
@@ -33,10 +33,30 @@ export default function UploadPage() {
       status: 'in_closet',
       child_name: '',
       box_number: '',
+      set_name: '',
       uploading: false,
       saved: false,
     }));
     setItems((prev) => [...prev, ...newItems]);
+  }, []);
+
+  const addBlankItem = useCallback(() => {
+    setItems((prev) => [
+      ...prev,
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        file: null,
+        preview: null,
+        size: '',
+        season: '',
+        status: 'in_closet',
+        child_name: '',
+        box_number: '',
+        set_name: '',
+        uploading: false,
+        saved: false,
+      },
+    ]);
   }, []);
 
   const updateItem = (id: string, updates: Partial<PendingItem>) =>
@@ -45,7 +65,7 @@ export default function UploadPage() {
   const removeItem = (id: string) => {
     setItems((prev) => {
       const item = prev.find((i) => i.id === id);
-      if (item) URL.revokeObjectURL(item.preview);
+      if (item?.preview) URL.revokeObjectURL(item.preview);
       return prev.filter((i) => i.id !== id);
     });
   };
@@ -68,12 +88,15 @@ export default function UploadPage() {
       updateItem(item.id, { uploading: true, error: undefined });
 
       try {
-        // 1. Upload image
-        const fd = new FormData();
-        fd.append('file', item.file);
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd });
-        if (!uploadRes.ok) throw new Error('שגיאה בהעלאת התמונה');
-        const { url } = await uploadRes.json();
+        // 1. Upload image (optional)
+        let url: string | null = null;
+        if (item.file) {
+          const fd = new FormData();
+          fd.append('file', item.file);
+          const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd });
+          if (!uploadRes.ok) throw new Error('שגיאה בהעלאת התמונה');
+          ({ url } = await uploadRes.json());
+        }
 
         // 2. Resolve box_id from box_number
         let box_id: string | null = null;
@@ -90,9 +113,10 @@ export default function UploadPage() {
             child_name: item.child_name && item.child_name !== '__none__' ? item.child_name : null,
             size: item.size,
             season: item.season,
-            image_url: url,
+            image_url: url ?? null,
             status: item.status,
             box_id,
+            set_name: item.set_name || null,
           }),
         });
         if (!saveRes.ok) throw new Error('שגיאה בשמירת הפריט');
@@ -115,8 +139,8 @@ export default function UploadPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-6" dir="rtl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">העלאת בגדים</h1>
-          <p className="text-sm text-slate-500">גרור תמונות ומלא את הפרטים לכל בגד</p>
+          <h1 className="text-2xl font-bold text-slate-800">הוספת בגד</h1>
+          <p className="text-sm text-slate-500">גרור תמונות או הוסף פריט ללא תמונה</p>
         </div>
         {unsavedCount > 0 && (
           <Button onClick={saveAll} disabled={saving} className="gap-2">
@@ -127,6 +151,13 @@ export default function UploadPage() {
       </div>
 
       <Dropzone onFiles={handleFiles} />
+
+      <div className="flex justify-center">
+        <Button variant="outline" onClick={addBlankItem} className="gap-2">
+          <PlusCircle className="w-4 h-4" />
+          הוסף פריט ללא תמונה
+        </Button>
+      </div>
 
       {items.length > 0 && (
         <div className="flex flex-wrap gap-4 pt-2">

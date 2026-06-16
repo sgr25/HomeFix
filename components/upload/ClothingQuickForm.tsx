@@ -1,21 +1,23 @@
 'use client';
 
 import Image from 'next/image';
-import { X, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, Loader2, CheckCircle2, Shirt } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { Child, Box, Season, ClothingStatus } from '@/types';
 
 export interface PendingItem {
   id: string;
-  file: File;
-  preview: string;
+  file: File | null;
+  preview: string | null;
   size: string;
   season: Season | '';
   status: ClothingStatus;
   child_name: string;
   box_number: string;
+  set_name: string;
   uploading: boolean;
   saved: boolean;
   error?: string;
@@ -38,7 +40,13 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
     return (
       <div className="flex flex-col items-center gap-2 w-40 opacity-60">
         <div className="relative w-40 h-40 rounded-xl overflow-hidden bg-slate-100">
-          <Image src={item.preview} alt="saved" fill className="object-cover" sizes="160px" />
+          {item.preview ? (
+            <Image src={item.preview} alt="saved" fill className="object-cover" sizes="160px" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-slate-100">
+              <Shirt className="w-12 h-12 text-slate-300" />
+            </div>
+          )}
           <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-green-600" />
           </div>
@@ -51,7 +59,14 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
   return (
     <div className="flex flex-col gap-2 w-40 relative" dir="rtl">
       <div className="relative w-40 h-40 rounded-xl overflow-hidden bg-slate-100">
-        <Image src={item.preview} alt="preview" fill className="object-cover" sizes="160px" />
+        {item.preview ? (
+          <Image src={item.preview} alt="preview" fill className="object-cover" sizes="160px" />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-slate-100">
+            <Shirt className="w-12 h-12 text-slate-300" />
+            <span className="text-[10px] text-slate-400">ללא תמונה</span>
+          </div>
+        )}
         {item.uploading && (
           <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
@@ -142,6 +157,16 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
           </SelectContent>
         </Select>
       )}
+
+      {/* Set name */}
+      <Input
+        type="text"
+        value={item.set_name}
+        onChange={(e) => onChange(item.id, { set_name: e.target.value })}
+        placeholder="שם סט תואם (אופציונלי)"
+        className="h-8 text-xs"
+        dir="rtl"
+      />
 
       {item.error && <p className="text-[10px] text-red-500">{item.error}</p>}
     </div>

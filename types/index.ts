@@ -21,6 +21,7 @@ export interface ClothingItem {
   image_url: string;
   status: ClothingStatus;
   box_id: string | null;
+  set_name?: string | null;
   updated_at: string;
   // Joined fields
   boxes?: Box | null;
