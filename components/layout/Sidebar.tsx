@@ -4,22 +4,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  PlusCircle,
   Box,
   WashingMachine,
-  ListFilter,
   Shirt,
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/',          label: 'לוח הבקרה',   icon: LayoutDashboard },
-  { href: '/upload',    label: 'הוספת בגד',    icon: PlusCircle },
-  { href: '/children',  label: 'ילדים',         icon: Users },
-  { href: '/inventory', label: 'מלאי',          icon: ListFilter },
-  { href: '/boxes',     label: 'קופסאות',       icon: Box },
-  { href: '/laundry',   label: 'כביסה',         icon: WashingMachine },
+  { href: '/',          label: 'לוח הבקרה',  icon: LayoutDashboard },
+  { href: '/children',  label: 'ילדים',       icon: Users },
+  { href: '/inventory', label: 'בגדים',       icon: Shirt },
+  { href: '/boxes',     label: 'קופסאות',     icon: Box },
+  { href: '/laundry',   label: 'כביסה',       icon: WashingMachine },
 ];
 
 export default function Sidebar() {

@@ -107,7 +107,11 @@ ${items.map((i) => `
                   title={`${item.size} — ${seasonLabel[item.season]}`}
                 >
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-slate-100">
-                    <Image src={item.image_url} alt={item.size} fill className="object-cover" sizes="96px" />
+                    {item.image_url ? (
+                      <Image src={item.image_url} alt={item.size} fill className="object-cover" sizes="96px" />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-[10px] text-slate-400">ללא תמונה</div>
+                    )}
                   </div>
                   <p className="text-[10px] font-semibold text-slate-600">{item.size}</p>
                   {item.child_name && <p className="text-[10px] text-slate-400">{item.child_name}</p>}

@@ -108,8 +108,12 @@ export default function WeeklyStyleMatrix({
                               {outfit.items.slice(0, 2).map((itemId) => {
                                 const item = clothesMap[itemId];
                                 return item ? (
-                                  <div key={itemId} className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200">
-                                    <Image src={item.image_url} alt={item.size} fill className="object-cover" sizes="48px" />
+                                  <div key={itemId} className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                                    {item.image_url ? (
+                                      <Image src={item.image_url} alt={item.size} fill className="object-cover" sizes="48px" />
+                                    ) : (
+                                      <div className="absolute inset-0 flex items-center justify-center text-[8px] text-slate-400">—</div>
+                                    )}
                                   </div>
                                 ) : null;
                               })}

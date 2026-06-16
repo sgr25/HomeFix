@@ -104,7 +104,13 @@ export default function LaundryPage() {
                 }`}
               >
                 <div className="relative h-36 bg-slate-100">
-                  <Image src={item.image_url} alt={item.size} fill className="object-cover" sizes="180px" />
+                  {item.image_url ? (
+                    <Image src={item.image_url} alt={item.size} fill className="object-cover" sizes="180px" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                      <span className="text-xs">ללא תמונה</span>
+                    </div>
+                  )}
                   {checked && (
                     <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
                       <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">

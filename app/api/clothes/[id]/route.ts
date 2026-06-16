@@ -11,7 +11,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const allowed = ['child_name', 'size', 'season', 'image_url', 'status', 'box_id', 'set_name'];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
-    if (key in body) updates[key] = body[key];
+    if (key in body) {
+      updates[key] = key === 'image_url' && body[key] == null ? '' : body[key];
+    }
   }
 
   // Enforce box_id nullity based on status

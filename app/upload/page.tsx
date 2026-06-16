@@ -94,7 +94,10 @@ export default function UploadPage() {
           const fd = new FormData();
           fd.append('file', item.file);
           const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd });
-          if (!uploadRes.ok) throw new Error('שגיאה בהעלאת התמונה');
+          if (!uploadRes.ok) {
+            const body = await uploadRes.json().catch(() => ({}));
+            throw new Error(typeof body.error === 'string' ? body.error : 'שגיאה בהעלאת התמונה');
+          }
           ({ url } = await uploadRes.json());
         }
 
@@ -119,7 +122,10 @@ export default function UploadPage() {
             set_name: item.set_name || null,
           }),
         });
-        if (!saveRes.ok) throw new Error('שגיאה בשמירת הפריט');
+        if (!saveRes.ok) {
+          const body = await saveRes.json().catch(() => ({}));
+          throw new Error(typeof body.error === 'string' ? body.error : 'שגיאה בשמירת הפריט');
+        }
 
         updateItem(item.id, { uploading: false, saved: true });
       } catch (err) {

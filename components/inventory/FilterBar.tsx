@@ -52,7 +52,7 @@ export default function FilterBar({ children, filters, onChange, setsForAll = fa
           <SelectTrigger className="w-40">
             <SelectValue placeholder="כל הילדים" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={ALL}>כל הילדים</SelectItem>
             {children.map((c) => (
               <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
@@ -64,7 +64,7 @@ export default function FilterBar({ children, filters, onChange, setsForAll = fa
           <SelectTrigger className="w-36">
             <SelectValue placeholder="כל העונות" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={ALL}>כל העונות</SelectItem>
             <SelectItem value="summer">קיץ</SelectItem>
             <SelectItem value="winter">חורף</SelectItem>
@@ -76,7 +76,7 @@ export default function FilterBar({ children, filters, onChange, setsForAll = fa
           <SelectTrigger className="w-36">
             <SelectValue placeholder="כל הסטטוסים" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={ALL}>כל הסטטוסים</SelectItem>
             <SelectItem value="in_closet">בארון</SelectItem>
             <SelectItem value="laundry">כביסה</SelectItem>

@@ -27,7 +27,7 @@ CREATE TABLE clothes (
   child_name TEXT REFERENCES children(name) ON DELETE SET NULL,
   size       TEXT NOT NULL,
   season     season_type NOT NULL,
-  image_url  TEXT NOT NULL,
+  image_url  TEXT,
   status     status_type NOT NULL DEFAULT 'in_closet',
   box_id     UUID REFERENCES boxes(id) ON DELETE SET NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),

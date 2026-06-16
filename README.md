@@ -15,7 +15,10 @@
 ### שלב 1 — הגדרת Supabase
 
 1. צור פרויקט חדש ב-[Supabase](https://supabase.com)
-2. עבור ל-SQL Editor והרץ את הקובץ `supabase/migrations/001_initial_schema.sql`
+2. עבור ל-SQL Editor והרץ את קבצי המיגרציה לפי הסדר:
+   - `supabase/migrations/001_initial_schema.sql`
+   - `supabase/migrations/002_add_set_name.sql`
+   - `supabase/migrations/003_image_url_nullable.sql` (נדרש רק אם כבר הרצת את 001 לפני עדכון זה)
 3. עבור ל-Storage → צור Bucket בשם `clothing-images` עם הגדרות **Public**
 
 ### שלב 2 — משתני סביבה

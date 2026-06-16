@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
   const { child_name, size, season, image_url, status, box_id, set_name } = body;
 
-  if (!size || !season || !image_url || !status) {
+  if (!size || !season || !status) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
@@ -91,17 +91,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'box_id required when status is in_box' }, { status: 400 });
   }
 
+  const row: Record<string, unknown> = {
+    child_name: child_name || null,
+    size,
+    season,
+    image_url: image_url ?? '',
+    status,
+    box_id: status === 'in_box' ? box_id : null,
+  };
+  if (set_name) row.set_name = set_name;
+
   const { data, error } = await supabase
     .from('clothes')
-    .insert({
-      child_name: child_name || null,
-      size,
-      season,
-      image_url,
-      status,
-      box_id: status === 'in_box' ? box_id : null,
-      set_name: set_name || null,
-    })
+    .insert(row)
     .select()
     .single();
 

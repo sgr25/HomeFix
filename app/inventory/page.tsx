@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import ClothingCard from '@/components/inventory/ClothingCard';
 import FilterBar from '@/components/inventory/FilterBar';
+import AddClothingDialog from '@/components/inventory/AddClothingDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import type { Child, Box, ClothingItem } from '@/types';
@@ -54,7 +55,6 @@ export default function InventoryPage() {
   }, [load, smartResults]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm('האם למחוק פריט זה לצמיתות?')) return;
     await fetch(`/api/clothes/${id}`, { method: 'DELETE' });
     if (smartResults !== null) {
       setSmartResults((prev) => prev?.filter((i) => i.id !== id) ?? null);
@@ -108,13 +108,16 @@ export default function InventoryPage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-5" dir="rtl">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">מלאי בגדים</h1>
-        <p className="text-sm text-slate-500">
-          {isSmartMode
-            ? `${displayItems.length} תוצאות לחיפוש: "${smartQuery}"`
-            : `${displayItems.length} פריטים נמצאו`}
-        </p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">בגדים</h1>
+          <p className="text-sm text-slate-500">
+            {isSmartMode
+              ? `${displayItems.length} תוצאות לחיפוש: "${smartQuery}"`
+              : `${displayItems.length} פריטים נמצאו`}
+          </p>
+        </div>
+        <AddClothingDialog childrenList={children} boxes={boxes} onSaved={load} />
       </div>
 
       {/* Smart search bar */}
@@ -196,7 +199,7 @@ export default function InventoryPage() {
         <>
           {isSmartMode && (
             <p className="text-xs text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-2 w-fit">
-              מציג תוצאות חיפוש חכם — לחץ "נקה חיפוש" לחזרה למלאי הרגיל
+              מציג תוצאות חיפוש חכם — לחץ "נקה חיפוש" לחזרה לרשימה המלאה
             </p>
           )}
           {setsForAll && !isSmartMode && (

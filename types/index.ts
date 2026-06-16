@@ -18,7 +18,7 @@ export interface ClothingItem {
   child_name: string | null;
   size: string;
   season: Season;
-  image_url: string;
+  image_url: string | null;
   status: ClothingStatus;
   box_id: string | null;
   set_name?: string | null;
