@@ -23,8 +23,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import type { ClothingItem, Box, Child, Season, ClothingStatus, Gender } from '@/types';
-import { genderLabel, genderColor, genderDefaultFromChildName, childGenderLabel } from '@/lib/clothes-utils';
+import type { ClothingItem, Box, Child, Season, ClothingStatus, Gender, ClothingType } from '@/types';
+import { genderLabel, genderColor, genderDefaultFromChildName, childGenderLabel, clothingTypeLabel, normalizeClothingType } from '@/lib/clothes-utils';
+import ClothingTypePicker from '@/components/inventory/ClothingTypePicker';
 
 const seasonLabel: Record<string, string> = {
   summer: 'קיץ',
@@ -56,6 +57,7 @@ interface EditState {
   size: string;
   season: Season;
   gender: Gender;
+  clothing_type: ClothingType;
   status: ClothingStatus;
   child_name: string;
   box_id: string;
@@ -128,6 +130,7 @@ export default function ClothingCard({
     size: item.size,
     season: item.season,
     gender: item.gender ?? 'unassigned',
+    clothing_type: normalizeClothingType(item.clothing_type),
     status: item.status,
     child_name: item.child_name ?? '',
     box_id: item.box_id ?? '',
@@ -160,18 +163,20 @@ export default function ClothingCard({
       size: item.size,
       season: item.season,
       gender: item.gender ?? 'unassigned',
+      clothing_type: normalizeClothingType(item.clothing_type),
       status: item.status,
       child_name: item.child_name ?? '',
       box_id: item.box_id ?? '',
       set_name: item.set_name ?? '',
     });
-  }, [item.id, item.size, item.season, item.gender, item.status, item.child_name, item.box_id, item.set_name, item.updated_at]);
+  }, [item.id, item.size, item.season, item.gender, item.clothing_type, item.status, item.child_name, item.box_id, item.set_name, item.updated_at]);
 
   const resetEdit = () => {
     setEditState({
       size: item.size,
       season: item.season,
       gender: item.gender ?? 'unassigned',
+      clothing_type: normalizeClothingType(item.clothing_type),
       status: item.status,
       child_name: item.child_name ?? '',
       box_id: item.box_id ?? '',
@@ -185,6 +190,7 @@ export default function ClothingCard({
       size: item.size,
       season: item.season,
       gender: item.gender ?? 'unassigned',
+      clothing_type: normalizeClothingType(item.clothing_type),
       status: item.status,
       child_name: item.child_name ?? '',
       box_id: item.box_id ?? '',
@@ -201,6 +207,7 @@ export default function ClothingCard({
         size: editState.size,
         season: editState.season,
         gender: editState.gender,
+        clothing_type: editState.clothing_type,
         status: editState.status,
         child_name: editState.status !== 'in_box' ? (editState.child_name || null) : null,
         box_id: editState.status === 'in_box' ? (editState.box_id || null) : null,
@@ -364,6 +371,9 @@ export default function ClothingCard({
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                     {seasonLabel[item.season]}
                   </Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    {clothingTypeLabel[normalizeClothingType(item.clothing_type)]}
+                  </Badge>
                 </div>
               </div>
               <div className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium w-fit', statusColor[item.status])}>
@@ -392,6 +402,9 @@ export default function ClothingCard({
                   </span>
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                     {seasonLabel[item.season]}
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    {clothingTypeLabel[normalizeClothingType(item.clothing_type)]}
                   </Badge>
                 </div>
               </div>
@@ -537,6 +550,13 @@ export default function ClothingCard({
                   </div>
                 </div>
 
+                <ClothingTypePicker
+                  value={editState.clothing_type}
+                  onChange={(v) => setEditState((p) => ({ ...p, clothing_type: v }))}
+                  variant="full"
+                  required
+                />
+
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-slate-600">סטטוס</label>
                   <div className="flex gap-2">
@@ -628,6 +648,7 @@ export default function ClothingCard({
                   <span className={cn('text-[11px] px-2 py-0.5 rounded-full font-medium', statusColor[item.status])}>
                     {statusLabel[item.status]}
                   </span>
+                  <Badge variant="outline">{clothingTypeLabel[normalizeClothingType(item.clothing_type)]}</Badge>
                 </div>
                 {item.child_name && (
                   <p><span className="font-semibold text-slate-700">ילד/ה: </span>{item.child_name}</p>

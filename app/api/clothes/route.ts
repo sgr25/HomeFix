@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiContext } from '@/lib/auth';
-import { normalizeClothingItems } from '@/lib/clothes-utils';
+import { normalizeClothingItems, CLOTHING_TYPE_VALUES } from '@/lib/clothes-utils';
+
+function applyClothingTypeFilter<T extends { eq: (col: string, val: string) => T }>(
+  query: T,
+  clothingType: string | null
+): T {
+  if (clothingType && clothingType !== 'all') {
+    return query.eq('clothing_type', clothingType);
+  }
+  return query;
+}
 
 export async function GET(request: NextRequest) {
   const { supabase } = await getApiContext();
   const { searchParams } = new URL(request.url);
 
   const setsForAll = searchParams.get('sets_for_all') === 'true';
+  const clothingType = searchParams.get('clothing_type');
 
   if (setsForAll) {
     // Fetch active children
@@ -45,14 +56,27 @@ export async function GET(request: NextRequest) {
 
     if (completeSets.length === 0) return NextResponse.json([]);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('clothes')
       .select('*, boxes(id, box_number, description), children(name, current_sizes)')
       .in('set_name', completeSets)
       .order('set_name', { ascending: true })
       .order('updated_at', { ascending: false });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    query = applyClothingTypeFilter(query, clothingType);
+
+    const { data, error } = await query;
+
+    if (error) {
+      const msg = error.message ?? '';
+      if (clothingType && msg.includes('clothing_type')) {
+        return NextResponse.json(
+          { error: 'עמודת סוג בגד חסרה במסד הנתונים — הרץ את המיגרציה 007_add_clothing_type.sql ב-Supabase' },
+          { status: 500 }
+        );
+      }
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
     return NextResponse.json(normalizeClothingItems(data ?? []));
   }
@@ -73,6 +97,7 @@ export async function GET(request: NextRequest) {
   if (status) query = query.eq('status', status);
   if (gender) query = query.eq('gender', gender);
   if (box_id) query = query.eq('box_id', box_id);
+  query = applyClothingTypeFilter(query, clothingType);
 
   const { data, error } = await query;
   if (error) {
@@ -80,6 +105,12 @@ export async function GET(request: NextRequest) {
     if (gender && msg.includes('gender')) {
       return NextResponse.json(
         { error: 'עמודת מגדר חסרה במסד הנתונים — הרץ את המיגרציה 005_add_gender.sql ב-Supabase' },
+        { status: 500 }
+      );
+    }
+    if (clothingType && msg.includes('clothing_type')) {
+      return NextResponse.json(
+        { error: 'עמודת סוג בגד חסרה במסד הנתונים — הרץ את המיגרציה 007_add_clothing_type.sql ב-Supabase' },
         { status: 500 }
       );
     }
@@ -93,16 +124,21 @@ export async function POST(request: NextRequest) {
   const { supabase, userId } = await getApiContext();
   const body = await request.json();
 
-  const { child_name, size, season, gender, image_url, status, box_id, set_name } = body;
+  const { child_name, size, season, gender, clothing_type, image_url, status, box_id, set_name } = body;
 
   const validGenders = ['boys', 'girls', 'unassigned'];
+  const assignableTypes = CLOTHING_TYPE_VALUES.filter((t) => t !== 'unassigned');
 
-  if (!size || !season || !status || !gender) {
+  if (!size || !season || !status || !gender || !clothing_type) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
   if (!validGenders.includes(gender)) {
     return NextResponse.json({ error: 'Invalid gender value' }, { status: 400 });
+  }
+
+  if (!assignableTypes.includes(clothing_type)) {
+    return NextResponse.json({ error: 'Invalid clothing_type value' }, { status: 400 });
   }
 
   if (status === 'in_box' && !box_id) {
@@ -114,6 +150,7 @@ export async function POST(request: NextRequest) {
     size,
     season,
     gender,
+    clothing_type,
     image_url: image_url ?? '',
     status,
     box_id: status === 'in_box' ? box_id : null,
@@ -132,6 +169,12 @@ export async function POST(request: NextRequest) {
     if (msg.includes('gender')) {
       return NextResponse.json(
         { error: 'עמודת מגדר חסרה במסד הנתונים — הרץ את המיגרציה 005_add_gender.sql ב-Supabase' },
+        { status: 500 }
+      );
+    }
+    if (msg.includes('clothing_type')) {
+      return NextResponse.json(
+        { error: 'עמודת סוג בגד חסרה במסד הנתונים — הרץ את המיגרציה 007_add_clothing_type.sql ב-Supabase' },
         { status: 500 }
       );
     }

@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { childGenderLabel, childGenderColor } from '@/lib/clothes-utils';
+import { childGenderLabel, childGenderColor, getClothingTypeOptions } from '@/lib/clothes-utils';
 import type { Child } from '@/types';
 
 interface Filters {
@@ -13,10 +13,11 @@ interface Filters {
   season: string;
   status: string;
   gender: string;
+  clothing_type: string;
 }
 
 interface Props {
-  children: Child[];
+  childrenList: Child[];
   filters: Filters;
   onChange: (filters: Filters) => void;
   setsForAll?: boolean;
@@ -25,9 +26,17 @@ interface Props {
 
 const ALL = '__all__';
 
-export default function FilterBar({ children, filters, onChange, setsForAll = false, onSetsForAllChange }: Props) {
+export default function FilterBar({
+  childrenList,
+  filters,
+  onChange,
+  setsForAll = false,
+  onSetsForAllChange,
+}: Props) {
   const set = (key: keyof Filters) => (value: string) =>
     onChange({ ...filters, [key]: value === ALL ? '' : value });
+
+  const clothingOptions = getClothingTypeOptions();
 
   return (
     <div className="space-y-3" dir="rtl">
@@ -57,7 +66,7 @@ export default function FilterBar({ children, filters, onChange, setsForAll = fa
           </SelectTrigger>
           <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={ALL}>כל הילדים</SelectItem>
-            {children.map((c) => (
+            {(childrenList ?? []).map((c) => (
               <SelectItem key={c.name} value={c.name}>
                 <span className="flex items-center gap-1.5">
                   {c.name}
@@ -108,6 +117,20 @@ export default function FilterBar({ children, filters, onChange, setsForAll = fa
           </SelectContent>
         </Select>
       </div>
+
+      <Select value={filters.clothing_type || ALL} onValueChange={set('clothing_type')}>
+        <SelectTrigger className="w-44">
+          <SelectValue placeholder="כל סוגי הבגדים" />
+        </SelectTrigger>
+        <SelectContent position="popper" sideOffset={4}>
+          <SelectItem value={ALL}>כל סוגי הבגדים</SelectItem>
+          {clothingOptions.map(({ value, label }) => (
+            <SelectItem key={value} value={value}>
+              {label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

@@ -1,5 +1,46 @@
-import type { ClothingItem, Season, ClothingStatus, Gender, Child, ChildGender } from '@/types';
-import { DEFAULT_GENDER } from '@/types';
+import type { ClothingItem, Season, ClothingStatus, Gender, Child, ChildGender, ClothingType } from '@/types';
+import { DEFAULT_GENDER, DEFAULT_CLOTHING_TYPE } from '@/types';
+
+export const CLOTHING_TYPE_VALUES = [
+  'set', 'shirt', 'pants', 'skirt', 'jumper', 'pajamas',
+  'overall', 'dress', 'underwear', 'tights', 'socks',
+  'hair_accessory', 'unassigned',
+] as const satisfies readonly ClothingType[];
+
+export const clothingTypeLabel: Record<ClothingType, string> = {
+  set: 'סט/חליפה 👔',
+  shirt: 'חולצה 👕',
+  pants: 'מכנס 🩳',
+  skirt: 'חצאית 👗',
+  jumper: 'סרפן 👗',
+  pajamas: "פיג'מה 🥱",
+  overall: 'אוברול 🩱',
+  dress: 'שמלה 👗',
+  underwear: 'לבנים 🩲',
+  tights: 'גרביונים 🧦',
+  socks: 'גרביים 🧦',
+  hair_accessory: 'קישוט שיער 🎀',
+  unassigned: 'ללא שיוך ⚪',
+};
+
+export const CLOTHING_TYPE_OPTIONS: { value: ClothingType; label: string }[] =
+  CLOTHING_TYPE_VALUES.map((value) => ({ value, label: clothingTypeLabel[value] }));
+
+export function getClothingTypeOptions(): { value: ClothingType; label: string }[] {
+  return (
+    CLOTHING_TYPE_OPTIONS ??
+    CLOTHING_TYPE_VALUES.map((value) => ({ value, label: clothingTypeLabel[value] }))
+  );
+}
+
+export function isClothingType(value: unknown): value is ClothingType {
+  return typeof value === 'string' && (CLOTHING_TYPE_VALUES as readonly string[]).includes(value);
+}
+
+export function normalizeClothingType(value: unknown): ClothingType {
+  if (isClothingType(value)) return value;
+  return DEFAULT_CLOTHING_TYPE;
+}
 
 export function normalizeGender(value: unknown): Gender {
   if (value === 'boys' || value === 'girls' || value === 'unassigned') return value;
@@ -7,7 +48,11 @@ export function normalizeGender(value: unknown): Gender {
 }
 
 export function normalizeClothingItem(item: ClothingItem): ClothingItem {
-  return { ...item, gender: normalizeGender(item.gender) };
+  return {
+    ...item,
+    gender: normalizeGender(item.gender),
+    clothing_type: normalizeClothingType(item.clothing_type),
+  };
 }
 
 export function normalizeClothingItems(items: ClothingItem[]): ClothingItem[] {
@@ -80,6 +125,7 @@ export function filterClothes(items: ClothingItem[], query: string): ClothingIte
       seasonLabel[item.season],
       statusLabel[item.status],
       genderLabel[normalizeGender(item.gender)],
+      clothingTypeLabel[normalizeClothingType(item.clothing_type)],
       item.boxes?.description,
       item.boxes?.box_number != null ? String(item.boxes.box_number) : null,
     ]
@@ -115,6 +161,7 @@ export function clothingToPayload(item: ClothingItem) {
     size: item.size,
     season: item.season,
     gender: normalizeGender(item.gender),
+    clothing_type: normalizeClothingType(item.clothing_type),
     image_url: item.image_url,
     status: item.status,
     box_id: item.box_id,

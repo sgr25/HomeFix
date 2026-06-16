@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Plus, Loader2, Save, PlusCircle } from 'lucide-react';
 import Dropzone from '@/components/upload/Dropzone';
-import ClothingQuickForm, { type PendingItem } from '@/components/upload/ClothingQuickForm';
+import ClothingQuickForm from '@/components/upload/ClothingQuickForm';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { notify } from '@/lib/toast';
-import type { Child, Box } from '@/types';
+import type { Child, Box, PendingItem } from '@/types';
 
 function createBlankItem(): PendingItem {
   return {
@@ -24,6 +24,7 @@ function createBlankItem(): PendingItem {
     size: '',
     season: '',
     gender: '',
+    clothing_type: '',
     status: 'in_closet',
     child_name: '',
     box_number: '',
@@ -97,6 +98,10 @@ export default function AddClothingDialog({ childrenList, boxes, onSaved }: Prop
       setItem((prev) => ({ ...prev, error: 'יש לבחור מגדר' }));
       return;
     }
+    if (!item.clothing_type) {
+      setItem((prev) => ({ ...prev, error: 'חובה לבחור את סוג הבגד' }));
+      return;
+    }
     if (item.status === 'in_box' && !item.box_number) {
       setItem((prev) => ({ ...prev, error: 'נא לבחור ארגז' }));
       return;
@@ -132,6 +137,7 @@ export default function AddClothingDialog({ childrenList, boxes, onSaved }: Prop
           size: item.size,
           season: item.season,
           gender: item.gender,
+          clothing_type: item.clothing_type,
           image_url: url ?? null,
           status: item.status,
           box_id,

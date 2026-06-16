@@ -7,23 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { genderDefaultFromChildName, childGenderLabel } from '@/lib/clothes-utils';
-import type { Child, Box, Season, ClothingStatus, Gender } from '@/types';
+import ClothingTypePicker from '@/components/inventory/ClothingTypePicker';
+import type { Child, Box, Season, ClothingStatus, Gender, PendingItem } from '@/types';
 
-export interface PendingItem {
-  id: string;
-  file: File | null;
-  preview: string | null;
-  size: string;
-  season: Season | '';
-  gender: Gender | '';
-  status: ClothingStatus;
-  child_name: string;
-  box_number: string;
-  set_name: string;
-  uploading: boolean;
-  saved: boolean;
-  error?: string;
-}
+export type { PendingItem };
 
 interface Props {
   item: PendingItem;
@@ -142,6 +129,14 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
           </button>
         ))}
       </div>
+
+      {/* Clothing type */}
+      <ClothingTypePicker
+        value={item.clothing_type}
+        onChange={(v) => onChange(item.id, { clothing_type: v })}
+        variant="compact"
+        required
+      />
 
       {/* Status toggle */}
       <div className="flex gap-1">

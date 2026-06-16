@@ -2,8 +2,23 @@ export type Season = 'summer' | 'winter' | 'transition';
 export type ClothingStatus = 'in_closet' | 'laundry' | 'in_box';
 export type Gender = 'boys' | 'girls' | 'unassigned';
 export type ChildGender = 'boys' | 'girls';
+export type ClothingType =
+  | 'set'
+  | 'shirt'
+  | 'pants'
+  | 'skirt'
+  | 'jumper'
+  | 'pajamas'
+  | 'overall'
+  | 'dress'
+  | 'underwear'
+  | 'tights'
+  | 'socks'
+  | 'hair_accessory'
+  | 'unassigned';
 
 export const DEFAULT_GENDER: Gender = 'unassigned';
+export const DEFAULT_CLOTHING_TYPE: ClothingType = 'unassigned';
 
 export interface Child {
   name: string;
@@ -24,6 +39,7 @@ export interface ClothingItem {
   size: string;
   season: Season;
   gender?: Gender;
+  clothing_type: ClothingType;
   image_url: string | null;
   status: ClothingStatus;
   box_id: string | null;
@@ -32,6 +48,23 @@ export interface ClothingItem {
   // Joined fields
   boxes?: Box | null;
   children?: Child | null;
+}
+
+export interface PendingItem {
+  id: string;
+  file: File | null;
+  preview: string | null;
+  size: string;
+  season: Season | '';
+  gender: Gender | '';
+  clothing_type: ClothingType | '';
+  status: ClothingStatus;
+  child_name: string;
+  box_number: string;
+  set_name: string;
+  uploading: boolean;
+  saved: boolean;
+  error?: string;
 }
 
 // Wardrobe Stylist Agent output (enforced via Gemini responseSchema)

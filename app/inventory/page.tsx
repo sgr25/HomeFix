@@ -16,7 +16,7 @@ import { filterClothes, sortClothes, clothingToPayload, genderFromChild, childGe
 import { notify } from '@/lib/toast';
 import type { Child, Box, ClothingItem, ClothingStatus } from '@/types';
 
-interface Filters { child: string; season: string; status: string; gender: string; }
+interface Filters { child: string; season: string; status: string; gender: string; clothing_type: string; }
 
 const VALID_STATUSES: ClothingStatus[] = ['in_closet', 'laundry', 'in_box'];
 
@@ -31,7 +31,7 @@ function InventoryContent() {
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [children, setChildren] = useState<Child[]>([]);
   const [boxes, setBoxes] = useState<Box[]>([]);
-  const [filters, setFilters] = useState<Filters>({ child: '', season: '', status: statusFromUrl, gender: '' });
+  const [filters, setFilters] = useState<Filters>({ child: '', season: '', status: statusFromUrl, gender: '', clothing_type: '' });
   const [setsForAll, setSetsForAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>('updated_at');
@@ -78,6 +78,7 @@ function InventoryContent() {
       if (filters.status) params.set('status', filters.status);
       if (filters.gender) params.set('gender', filters.gender);
     }
+    if (filters.clothing_type) params.set('clothing_type', filters.clothing_type);
     fetchJson<ClothingItem[]>(`/api/clothes?${params}`)
       .then((d) => { setItems(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(() => { setLoading(false); notify.error(); });
@@ -303,7 +304,7 @@ function InventoryContent() {
 
       {!isSmartMode && (
         <FilterBar
-          children={children}
+          childrenList={children}
           filters={filters}
           onChange={handleFiltersChange}
           setsForAll={setsForAll}
