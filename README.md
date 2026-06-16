@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ארון חכם — Smart Wardrobe Management
 
-## Getting Started
+ניהול מלאי בגדי ילדים, קופסאות אחסון, מעבר עונות, וסטיילינג חכם בסיוע AI.
 
-First, run the development server:
+---
+
+## הגדרת הפרויקט
+
+### דרישות מקדימות
+- Node.js 20+
+- חשבון Supabase (חינמי)
+- מפתח Gemini API (חינמי)
+- מפתח OpenWeatherMap (חינמי)
+
+### שלב 1 — הגדרת Supabase
+
+1. צור פרויקט חדש ב-[Supabase](https://supabase.com)
+2. עבור ל-SQL Editor והרץ את הקובץ `supabase/migrations/001_initial_schema.sql`
+3. עבור ל-Storage → צור Bucket בשם `clothing-images` עם הגדרות **Public**
+
+### שלב 2 — משתני סביבה
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.local.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ערוך את `.env.local` והוסף:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| משתנה | מקור |
+|-------|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API |
+| `GEMINI_API_KEY` | [Google AI Studio](https://aistudio.google.com/app/apikey) — חינמי |
+| `OPENWEATHER_API_KEY` | [OpenWeatherMap](https://openweathermap.org/api) — חינמי |
+| `NEXT_PUBLIC_WEATHER_CITY` | שם העיר לתחזית (ברירת מחדל: Tel Aviv) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### שלב 3 — הפעלה
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+פתח את [http://localhost:3000](http://localhost:3000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## מבנה האפליקציה
 
-## Deploy on Vercel
+| עמוד | נתיב | תיאור |
+|------|------|--------|
+| לוח בקרה | `/` | סטטיסטיקות, מטריצת לבוש שבועית, דוח עונתי |
+| העלאה | `/upload` | גרירת תמונות + טופס מהיר לכל בגד |
+| מלאי | `/inventory` | כרטיסיות ניתנות לסינון לפי ילד/עונה/סטטוס |
+| קופסאות | `/boxes` | גלריה מורחבת + הדפסת מניפסט לכל קופסה |
+| כביסה | `/laundry` | מעקב פריטים בכביסה + החזרה לארון בצובר |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## סוכני AI
+
+### סוכן 1: היערכות עונתית (Gemini 1.5 Pro)
+לחץ "צור דוח" בדף הבית לקבלת סיכום בעברית על אילו קופסאות להוציא לקראת העונה הקרובה.
+
+### סוכן 2: סטייליסט שבועי (Gemini 1.5 Flash)
+לחץ "רענן" בלוח הבקרה לקבלת המלצת לבוש ל-7 ימים על בסיס תחזית מזג האוויר. לחץ "נלבש" בסוף היום כדי להעביר את הבגדים לכביסה.

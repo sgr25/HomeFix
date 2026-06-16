@@ -1,65 +1,154 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, Sparkles, Package, WashingMachine, Shirt } from 'lucide-react';
+import WeeklyStyleMatrix from '@/components/dashboard/WeeklyStyleMatrix';
+import type { DayOutfit, WeatherDay, ClothingItem } from '@/types';
+
+export default function DashboardPage() {
+  const [outfits, setOutfits]       = useState<DayOutfit[]>([]);
+  const [forecast, setForecast]     = useState<WeatherDay[] | null>(null);
+  const [clothesMap, setClothesMap] = useState<Record<string, ClothingItem>>({});
+  const [stylistLoading, setStylistLoading] = useState(false);
+
+  const [stats, setStats] = useState({ total: 0, laundry: 0, inBox: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  const [seasonal, setSeasonal]     = useState('');
+  const [seasonalLoading, setSeasonalLoading] = useState(false);
+
+  // Load stats
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/clothes').then((r) => r.json()),
+    ]).then(([all]) => {
+      if (Array.isArray(all)) {
+        setStats({
+          total:   all.length,
+          laundry: all.filter((c: ClothingItem) => c.status === 'laundry').length,
+          inBox:   all.filter((c: ClothingItem) => c.status === 'in_box').length,
+        });
+        const map: Record<string, ClothingItem> = {};
+        all.forEach((c: ClothingItem) => { map[c.id] = c; });
+        setClothesMap(map);
+      }
+      setStatsLoading(false);
+    });
+  }, []);
+
+  const loadStylist = useCallback(() => {
+    setStylistLoading(true);
+    fetch('/api/agents/stylist')
+      .then((r) => r.json())
+      .then(({ outfits: o, forecast: f }) => {
+        setOutfits(Array.isArray(o) ? o : []);
+        setForecast(Array.isArray(f) ? f : null);
+        setStylistLoading(false);
+      })
+      .catch(() => setStylistLoading(false));
+  }, []);
+
+  const handleWornToday = async (_date: string, itemIds: string[]) => {
+    await fetch('/api/agents/stylist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ item_ids: itemIds }),
+    });
+    // Refresh stats
+    const allRes = await fetch('/api/clothes').then((r) => r.json());
+    if (Array.isArray(allRes)) {
+      setStats({
+        total:   allRes.length,
+        laundry: allRes.filter((c: ClothingItem) => c.status === 'laundry').length,
+        inBox:   allRes.filter((c: ClothingItem) => c.status === 'in_box').length,
+      });
+    }
+  };
+
+  const generateSeasonalReport = async () => {
+    setSeasonalLoading(true);
+    setSeasonal('');
+    try {
+      const res = await fetch('/api/agents/seasonal', { method: 'POST' });
+      const { report } = await res.json();
+      setSeasonal(report ?? '');
+    } catch {
+      setSeasonal('שגיאה בייצור הדוח');
+    }
+    setSeasonalLoading(false);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="p-6 max-w-6xl mx-auto space-y-8" dir="rtl">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-slate-800">ארון חכם</h1>
+        <p className="text-slate-500">ניהול מלאי בגדים לכל המשפחה</p>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: 'סה״כ פריטים', value: stats.total,   icon: Shirt,         color: 'text-blue-600',   bg: 'bg-blue-50' },
+          { label: 'בכביסה',      value: stats.laundry,  icon: WashingMachine, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+          { label: 'בקופסאות',    value: stats.inBox,    icon: Package,        color: 'text-slate-600',  bg: 'bg-slate-100' },
+        ].map(({ label, value, icon: Icon, color, bg }) => (
+          <div key={label} className={`flex items-center gap-4 ${bg} rounded-2xl p-5 border border-white shadow-sm`}>
+            <div className={`w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm`}>
+              <Icon className={`w-6 h-6 ${color}`} />
+            </div>
+            <div>
+              {statsLoading
+                ? <Skeleton className="h-7 w-16" />
+                : <p className={`text-2xl font-bold ${color}`}>{value}</p>
+              }
+              <p className="text-sm text-slate-600">{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Stylist matrix */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <WeeklyStyleMatrix
+          outfits={outfits}
+          forecast={forecast}
+          clothesMap={clothesMap}
+          onWornToday={handleWornToday}
+          onRefresh={loadStylist}
+          loading={stylistLoading}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </div>
+
+      {/* Seasonal Logistics Agent */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-500" />
+              דוח היערכות עונתית
+            </h2>
+            <p className="text-sm text-slate-500">ניתוח אילו קופסאות כדאי להוציא לקראת העונה</p>
+          </div>
+          <Button
+            onClick={generateSeasonalReport}
+            disabled={seasonalLoading}
+            variant="outline"
+            className="gap-2"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            {seasonalLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            צור דוח
+          </Button>
         </div>
-      </main>
+
+        {seasonal && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{seasonal}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
