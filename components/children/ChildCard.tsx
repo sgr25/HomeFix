@@ -46,25 +46,6 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
     setCustomSize('');
   };
 
-  const saveGender = async (newGender: ChildGender) => {
-    if (newGender === child.gender) return;
-    setSaving(true);
-    try {
-      await fetchJson(`/api/children/${encodeURIComponent(child.name)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gender: newGender }),
-      });
-      setGender(newGender);
-      notify.saved();
-      onUpdated();
-    } catch (err) {
-      notify.error(err instanceof Error ? err.message : undefined);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const saveEdit = async () => {
     if (!gender) {
       notify.error('נא לבחור מגדר');
@@ -229,28 +210,17 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
             </div>
           </div>
         ) : (
-          <>
-            <div>
-              <p className="text-xs font-medium text-slate-600 mb-1.5">מגדר:</p>
-              <ChildGenderPicker
-                value={gender}
-                onChange={saveGender}
-                size="sm"
-                disabled={saving}
-              />
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {child.current_sizes.length > 0 ? (
-                child.current_sizes.map((s) => (
-                  <Badge key={s} variant="secondary" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-                    {s}
-                  </Badge>
-                ))
-              ) : (
-                <span className="text-xs text-slate-400">אין מידות מוגדרות</span>
-              )}
-            </div>
-          </>
+          <div className="flex flex-wrap gap-1.5">
+            {child.current_sizes.length > 0 ? (
+              child.current_sizes.map((s) => (
+                <Badge key={s} variant="secondary" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                  {s}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-xs text-slate-400">אין מידות מוגדרות</span>
+            )}
+          </div>
         )}
       </div>
     </div>
