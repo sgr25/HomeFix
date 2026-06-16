@@ -24,7 +24,7 @@ export default function SetupChecklist({ childrenCount, clothesCount, boxesCount
 
   const items = [
     { done: childrenCount > 0, label: 'הוסף ילד/ה', href: '/children' },
-    { done: clothesCount >= 3, label: 'העלה לפחות 3 בגדים', href: '/upload' },
+    { done: clothesCount >= 3, label: 'העלה לפחות 3 בגדים', href: '/inventory' },
     { done: boxesCount > 0, label: 'צור קופסת אחסון', href: '/boxes' },
   ];
 

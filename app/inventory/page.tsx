@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import Link from 'next/link';
 import { Search, X, Loader2, Sparkles, CheckSquare, Square, Trash2, WashingMachine, Shirt } from 'lucide-react';
 import ClothingCard from '@/components/inventory/ClothingCard';
 import FilterBar from '@/components/inventory/FilterBar';
@@ -331,14 +330,7 @@ export default function InventoryPage() {
       ) : displayItems.length === 0 ? (
         <EmptyState
           title={isSmartMode ? 'לא נמצאו פריטים התואמים לחיפוש' : 'לא נמצאו פריטים'}
-          description={isSmartMode ? 'נסה לנסח את החיפוש בצורה אחרת' : 'נסה לשנות את הסינון או הוסף בגדים חדשים'}
-          action={
-            !isSmartMode && (
-              <Button asChild className="gap-2">
-                <Link href="/upload">העלה תמונות</Link>
-              </Button>
-            )
-          }
+          description={isSmartMode ? 'נסה לנסח את החיפוש בצורה אחרת' : 'נסה לשנות את הסינון או לחץ "הוסף בגד חדש" למעלה'}
         />
       ) : (
         <>

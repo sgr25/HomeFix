@@ -19,5 +19,4 @@ export const notify = {
     }
   },
   bulkUpdated: (count: number) => toast.success(`${count} פריטים עודכנו`),
-  uploaded: (count: number) => toast.success(`${count} פריטים נשמרו`),
 };

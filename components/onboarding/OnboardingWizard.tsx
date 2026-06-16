@@ -59,7 +59,7 @@ export default function OnboardingWizard() {
     {
       title: 'שלב 2: העלה בגדים',
       body: 'גרור תמונות או הוסף פריטים ללא תמונה.',
-      action: () => { finish(); router.push('/upload'); },
+      action: () => { finish(); router.push('/inventory'); },
       actionLabel: 'להעלאה',
       icon: <Upload className="w-10 h-10 text-indigo-500" />,
     },
