@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiContext } from '@/lib/auth';
+import { isChildGender } from '@/lib/clothes-utils';
 
 type Params = { params: Promise<{ name: string }> };
 
@@ -25,15 +26,17 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     if (!current) return NextResponse.json({ error: 'ילד לא נמצא' }, { status: 404 });
 
     const sizes = 'current_sizes' in body ? body.current_sizes : current.current_sizes;
+    const gender = 'gender' in body && isChildGender(body.gender) ? body.gender : current.gender;
 
     await supabase.from('children').update({ active: false }).eq('name', name);
 
     if (conflict && !conflict.active) {
-      await supabase.from('children').update({ active: true, current_sizes: sizes }).eq('name', newName);
+      await supabase.from('children').update({ active: true, current_sizes: sizes, gender }).eq('name', newName);
     } else {
       await supabase.from('children').insert({
         name: newName,
         current_sizes: sizes,
+        gender,
         active: true,
         user_id: current.user_id ?? userId,
       });
@@ -48,6 +51,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const updates: Record<string, unknown> = {};
   if ('current_sizes' in body) updates.current_sizes = body.current_sizes;
   if ('active' in body) updates.active = body.active;
+  if ('gender' in body) {
+    if (!isChildGender(body.gender)) {
+      return NextResponse.json({ error: 'gender must be boys or girls' }, { status: 400 });
+    }
+    updates.gender = body.gender;
+  }
 
   const { data, error } = await supabase
     .from('children')

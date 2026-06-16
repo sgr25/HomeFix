@@ -3,7 +3,9 @@
 import { Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { childGenderLabel, childGenderColor } from '@/lib/clothes-utils';
 import type { Child } from '@/types';
 
 interface Filters {
@@ -56,7 +58,16 @@ export default function FilterBar({ children, filters, onChange, setsForAll = fa
           <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={ALL}>כל הילדים</SelectItem>
             {children.map((c) => (
-              <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+              <SelectItem key={c.name} value={c.name}>
+                <span className="flex items-center gap-1.5">
+                  {c.name}
+                  {c.gender && (
+                    <Badge className={`text-[9px] px-1 py-0 ${childGenderColor[c.gender]}`}>
+                      {childGenderLabel[c.gender]}
+                    </Badge>
+                  )}
+                </span>
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

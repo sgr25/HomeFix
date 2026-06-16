@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { genderDefaultFromChildName, childGenderLabel } from '@/lib/clothes-utils';
 import type { Child, Box, Season, ClothingStatus, Gender } from '@/types';
 
 export interface PendingItem {
@@ -162,14 +163,26 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
 
       {/* Conditional: child or box */}
       {item.status === 'in_closet' ? (
-        <Select value={item.child_name} onValueChange={set('child_name')}>
+        <Select
+          value={item.child_name}
+          onValueChange={(name) => {
+            const updates: Partial<PendingItem> = {
+              child_name: name === '__none__' ? '' : name,
+            };
+            const defaultGender = genderDefaultFromChildName(name, children);
+            if (defaultGender) updates.gender = defaultGender;
+            onChange(item.id, updates);
+          }}
+        >
           <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="ילד/ה" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__none__" className="text-xs">ללא שיוך</SelectItem>
             {children.map((c) => (
-              <SelectItem key={c.name} value={c.name} className="text-xs">{c.name}</SelectItem>
+              <SelectItem key={c.name} value={c.name} className="text-xs">
+                {c.name}{c.gender ? ` (${childGenderLabel[c.gender]})` : ''}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

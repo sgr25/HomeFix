@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Pencil, Trash2, Check, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { fetchJson } from '@/lib/api';
 import { notify } from '@/lib/toast';
-import type { Child } from '@/types';
+import { childGenderLabel, childGenderColor } from '@/lib/clothes-utils';
+import ChildGenderPicker from '@/components/children/ChildGenderPicker';
+import type { Child, ChildGender } from '@/types';
 
 const COMMON_SIZES = ['NB','0-3m','3-6m','6-12m','12-18m','18-24m','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y','12Y','14Y','XS','S','M','L'];
 
@@ -21,9 +23,16 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(child.name);
   const [sizes, setSizes] = useState<string[]>(child.current_sizes);
+  const [gender, setGender] = useState<ChildGender | null>(child.gender);
   const [customSize, setCustomSize] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    setName(child.name);
+    setSizes(child.current_sizes);
+    setGender(child.gender);
+  }, [child.name, child.current_sizes, child.gender]);
 
   const toggleSize = (size: string) => {
     setSizes((prev) =>
@@ -37,10 +46,33 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
     setCustomSize('');
   };
 
-  const saveEdit = async () => {
+  const saveGender = async (newGender: ChildGender) => {
+    if (newGender === child.gender) return;
     setSaving(true);
     try {
-      const body: Record<string, unknown> = { current_sizes: sizes };
+      await fetchJson(`/api/children/${encodeURIComponent(child.name)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gender: newGender }),
+      });
+      setGender(newGender);
+      notify.saved();
+      onUpdated();
+    } catch (err) {
+      notify.error(err instanceof Error ? err.message : undefined);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveEdit = async () => {
+    if (!gender) {
+      notify.error('נא לבחור מגדר');
+      return;
+    }
+    setSaving(true);
+    try {
+      const body: Record<string, unknown> = { current_sizes: sizes, gender };
       if (name.trim() !== child.name) body.new_name = name.trim();
       await fetchJson(`/api/children/${encodeURIComponent(child.name)}`, {
         method: 'PATCH',
@@ -60,6 +92,7 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
   const cancelEdit = () => {
     setName(child.name);
     setSizes(child.current_sizes);
+    setGender(child.gender);
     setEditing(false);
   };
 
@@ -90,7 +123,18 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
                 aria-label="שם ילד"
               />
             ) : (
-              <p className="font-bold text-slate-800 text-sm">{child.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-slate-800 text-sm">{child.name}</p>
+                {child.gender ? (
+                  <Badge className={`text-[10px] ${childGenderColor[child.gender]}`}>
+                    {childGenderLabel[child.gender]}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] text-amber-700 border-amber-300 bg-amber-50">
+                    לא הוגדר
+                  </Badge>
+                )}
+              </div>
             )}
             <p className="text-xs text-slate-500">{clothesCount} פריטים משויכים</p>
           </div>
@@ -134,9 +178,14 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
         </div>
       </div>
 
-      <div className="border-t border-slate-100 px-5 py-4">
+      <div className="border-t border-slate-100 px-5 py-4 space-y-3">
         {editing ? (
           <div className="space-y-3">
+            <div>
+              <p className="text-xs font-medium text-slate-600 mb-1.5">מגדר:</p>
+              <ChildGenderPicker value={gender} onChange={setGender} disabled={saving} />
+            </div>
+
             <p className="text-xs font-medium text-slate-600">בחר מידות נוכחיות:</p>
             <div className="flex flex-wrap gap-1.5">
               {COMMON_SIZES.map((s) => (
@@ -180,17 +229,28 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-1.5">
-            {child.current_sizes.length > 0 ? (
-              child.current_sizes.map((s) => (
-                <Badge key={s} variant="secondary" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
-                  {s}
-                </Badge>
-              ))
-            ) : (
-              <span className="text-xs text-slate-400">אין מידות מוגדרות</span>
-            )}
-          </div>
+          <>
+            <div>
+              <p className="text-xs font-medium text-slate-600 mb-1.5">מגדר:</p>
+              <ChildGenderPicker
+                value={gender}
+                onChange={saveGender}
+                size="sm"
+                disabled={saving}
+              />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {child.current_sizes.length > 0 ? (
+                child.current_sizes.map((s) => (
+                  <Badge key={s} variant="secondary" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                    {s}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-xs text-slate-400">אין מידות מוגדרות</span>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

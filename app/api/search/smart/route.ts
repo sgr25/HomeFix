@@ -22,11 +22,14 @@ export async function POST(request: NextRequest) {
 
   // Fetch context for the model
   const [{ data: activeChildren }, { data: boxes }] = await Promise.all([
-    supabase.from('children').select('name').eq('active', true),
+    supabase.from('children').select('name, gender').eq('active', true),
     supabase.from('boxes').select('id, box_number, description'),
   ]);
 
-  const childrenNames = (activeChildren ?? []).map((c: { name: string }) => c.name);
+  const childrenList = (activeChildren ?? []) as { name: string; gender: string | null }[];
+  const childrenContext = childrenList
+    .map((c) => `${c.name}${c.gender === 'boys' ? ' (בן)' : c.gender === 'girls' ? ' (בת)' : ''}`)
+    .join(', ');
   const boxList = (boxes ?? []).map((b: { box_number: number; description: string | null }) =>
     `ארגז #${b.box_number}${b.description ? ` (${b.description})` : ''}`
   );
@@ -34,7 +37,7 @@ export async function POST(request: NextRequest) {
   const prompt = `
 אתה עוזר חכם לניהול מלאי בגדים. המשתמש שלח שאילתת חיפוש בעברית.
 
-**ילדים פעילים במערכת:** ${childrenNames.join(', ') || 'אין'}
+**ילדים פעילים במערכת (שם ומגדר):** ${childrenContext || 'אין'}
 **ארגזי אחסון:** ${boxList.join(', ') || 'אין'}
 
 **שאילתת המשתמש:** "${query}"
@@ -52,6 +55,7 @@ export async function POST(request: NextRequest) {
 מיפוי סטטוסים: "ארון"/"בארון" → in_closet, "כביסה" → laundry, "ארגז"/"מאוחסן" → in_box.
 מיפוי עונות: "קיץ"/"חם" → summer, "חורף"/"קר" → winter, "אביב"/"סתיו"/"מעבר" → transition.
 מיפוי מגדר: "בנים"/"בן"/"בגדי בנים" → boys, "בנות"/"בת"/"בגדי בנות" → girls, "ללא שיוך"/"יוניסקס"/"ניטרלי" → unassigned.
+אם מוזכר שם ילד מהרשימה — השתמש גם במגדר שלו כ-filter (gender) אלא אם המשתמש ציין מגדר אחר במפורש.
 השתמש אך ורק בשמות ילדים שמופיעים ברשימה. החזר JSON בלבד.
 `;
 

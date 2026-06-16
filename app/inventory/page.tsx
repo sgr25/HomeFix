@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { fetchJson } from '@/lib/api';
-import { filterClothes, sortClothes, clothingToPayload, type SortKey } from '@/lib/clothes-utils';
+import { filterClothes, sortClothes, clothingToPayload, genderFromChild, childGenderLabel, type SortKey } from '@/lib/clothes-utils';
 import { notify } from '@/lib/toast';
 import type { Child, Box, ClothingItem, ClothingStatus } from '@/types';
 
@@ -86,6 +86,16 @@ function InventoryContent() {
   useEffect(() => {
     if (smartResults === null) load();
   }, [load, smartResults]);
+
+  const handleFiltersChange = useCallback((newFilters: Filters) => {
+    setFilters((prev) => {
+      if (newFilters.child !== prev.child) {
+        const child = children.find((c) => c.name === newFilters.child);
+        return { ...newFilters, gender: genderFromChild(child) };
+      }
+      return newFilters;
+    });
+  }, [children]);
 
   const handleDelete = async (id: string) => {
     const item = [...items, ...(smartResults ?? [])].find((i) => i.id === id);
@@ -295,7 +305,7 @@ function InventoryContent() {
         <FilterBar
           children={children}
           filters={filters}
-          onChange={setFilters}
+          onChange={handleFiltersChange}
           setsForAll={setsForAll}
           onSetsForAllChange={setSetsForAll}
         />

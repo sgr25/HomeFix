@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import ChildCard from '@/components/children/ChildCard';
+import ChildGenderPicker from '@/components/children/ChildGenderPicker';
 import PageHeader from '@/components/ui/PageHeader';
 import EmptyState from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Plus } from 'lucide-react';
 import { fetchJson } from '@/lib/api';
 import { notify } from '@/lib/toast';
-import type { Child, ClothingItem } from '@/types';
+import type { Child, ChildGender, ClothingItem } from '@/types';
 
 const COMMON_SIZES = ['NB','0-3m','3-6m','6-12m','12-18m','18-24m','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y','12Y','14Y','XS','S','M','L'];
 
@@ -18,6 +19,7 @@ export default function ChildrenPage() {
   const [clothes, setClothes]     = useState<ClothingItem[]>([]);
   const [loading, setLoading]     = useState(true);
   const [newName, setNewName]     = useState('');
+  const [newGender, setNewGender] = useState<ChildGender | null>(null);
   const [newSizes, setNewSizes]   = useState<string[]>([]);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
@@ -43,6 +45,7 @@ export default function ChildrenPage() {
   const saveChild = async () => {
     const name = newName.trim();
     if (!name) { setError('נא להזין שם'); return; }
+    if (!newGender) { setError('נא לבחור מגדר'); return; }
     if (children.some((c) => c.name === name)) { setError('ילד בשם זה כבר קיים'); return; }
 
     setError('');
@@ -52,10 +55,11 @@ export default function ChildrenPage() {
       await fetchJson('/api/children', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, current_sizes: newSizes }),
+        body: JSON.stringify({ name, gender: newGender, current_sizes: newSizes }),
       });
 
       setNewName('');
+      setNewGender(null);
       setNewSizes([]);
       notify.saved(`${name} נשמר בהצלחה`);
       await load();
@@ -95,6 +99,11 @@ export default function ChildrenPage() {
         </div>
 
         <div>
+          <label className="text-xs text-slate-500 block mb-1.5">מגדר</label>
+          <ChildGenderPicker value={newGender} onChange={setNewGender} />
+        </div>
+
+        <div>
           <label className="text-xs text-slate-500 block mb-2">מידות נוכחיות (אופציונלי)</label>
           <div className="flex flex-wrap gap-1.5">
             {COMMON_SIZES.map((s) => (
@@ -113,7 +122,7 @@ export default function ChildrenPage() {
           </div>
         </div>
 
-        <Button type="submit" disabled={saving || !newName.trim()} className="gap-1">
+        <Button type="submit" disabled={saving || !newName.trim() || !newGender} className="gap-1">
           {saving ? (
             <>שומר...</>
           ) : (

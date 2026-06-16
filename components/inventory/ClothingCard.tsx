@@ -24,7 +24,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import type { ClothingItem, Box, Child, Season, ClothingStatus, Gender } from '@/types';
-import { genderLabel, genderColor } from '@/lib/clothes-utils';
+import { genderLabel, genderColor, genderDefaultFromChildName, childGenderLabel } from '@/lib/clothes-utils';
 
 const seasonLabel: Record<string, string> = {
   summer: 'קיץ',
@@ -255,6 +255,16 @@ export default function ClothingCard({
 
   const set = (key: keyof EditState) => (value: string) =>
     setEditState((prev) => ({ ...prev, [key]: value }));
+
+  const handleChildChange = (value: string) => {
+    const childName = value === '__none__' ? '' : value;
+    setEditState((prev) => {
+      const updates: EditState = { ...prev, child_name: childName };
+      const defaultGender = genderDefaultFromChildName(value, allChildren);
+      if (defaultGender) updates.gender = defaultGender;
+      return updates;
+    });
+  };
 
   const renderImageArea = (variant: 'card' | 'dialog') => {
     const isCard = variant === 'card';
@@ -550,14 +560,16 @@ export default function ClothingCard({
                 {editState.status === 'in_closet' || editState.status === 'laundry' ? (
                   <div className="space-y-1">
                     <label className="text-xs font-medium text-slate-600">ילד/ה</label>
-                    <Select value={editState.child_name || '__none__'} onValueChange={(v) => set('child_name')(v === '__none__' ? '' : v)}>
+                    <Select value={editState.child_name || '__none__'} onValueChange={handleChildChange}>
                       <SelectTrigger>
                         <SelectValue placeholder="ללא שיוך" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">ללא שיוך</SelectItem>
                         {allChildren.map((c) => (
-                          <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
+                          <SelectItem key={c.name} value={c.name}>
+                            {c.name}{c.gender ? ` (${childGenderLabel[c.gender]})` : ''}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

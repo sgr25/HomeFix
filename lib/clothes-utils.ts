@@ -1,4 +1,4 @@
-import type { ClothingItem, Season, ClothingStatus, Gender } from '@/types';
+import type { ClothingItem, Season, ClothingStatus, Gender, Child, ChildGender } from '@/types';
 import { DEFAULT_GENDER } from '@/types';
 
 export function normalizeGender(value: unknown): Gender {
@@ -37,6 +37,34 @@ export const genderColor: Record<Gender, string> = {
   girls: 'bg-pink-100 text-pink-800',
   unassigned: 'bg-slate-100 text-slate-600',
 };
+
+export const childGenderLabel: Record<ChildGender, string> = {
+  boys: 'בן',
+  girls: 'בת',
+};
+
+export const childGenderColor: Record<ChildGender, string> = {
+  boys: 'bg-sky-100 text-sky-800',
+  girls: 'bg-pink-100 text-pink-800',
+};
+
+export function isChildGender(value: unknown): value is ChildGender {
+  return value === 'boys' || value === 'girls';
+}
+
+export function genderFromChild(child: Pick<Child, 'gender'> | null | undefined): ChildGender | '' {
+  return child?.gender && isChildGender(child.gender) ? child.gender : '';
+}
+
+export function genderDefaultFromChildName(
+  childName: string,
+  childrenList: Pick<Child, 'name' | 'gender'>[]
+): Gender | '' {
+  if (!childName || childName === '__none__') return '';
+  const child = childrenList.find((c) => c.name === childName);
+  const g = genderFromChild(child);
+  return g || '';
+}
 
 export type SortKey = 'updated_at' | 'size' | 'child_name' | 'season';
 

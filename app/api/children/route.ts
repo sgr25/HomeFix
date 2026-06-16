@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiContext } from '@/lib/auth';
+import { isChildGender } from '@/lib/clothes-utils';
 
 export async function GET() {
   const { supabase } = await getApiContext();
@@ -17,10 +18,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const { supabase, userId } = await getApiContext();
-  const { name: rawName, current_sizes } = await request.json();
+  const { name: rawName, current_sizes, gender } = await request.json();
   const name = typeof rawName === 'string' ? rawName.trim() : '';
 
   if (!name) return NextResponse.json({ error: 'name is required' }, { status: 400 });
+  if (!isChildGender(gender)) {
+    return NextResponse.json({ error: 'gender is required (boys or girls)' }, { status: 400 });
+  }
 
   const sizes = Array.isArray(current_sizes) ? current_sizes : [];
 
@@ -39,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('children')
-      .update({ active: true, current_sizes: sizes, user_id: userId })
+      .update({ active: true, current_sizes: sizes, gender, user_id: userId })
       .eq('name', name)
       .select()
       .single();
@@ -51,7 +55,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('children')
-    .insert({ name, current_sizes: sizes, user_id: userId })
+    .insert({ name, current_sizes: sizes, gender, user_id: userId })
     .select()
     .single();
 

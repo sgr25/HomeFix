@@ -71,6 +71,7 @@ async function main() {
     '002_add_set_name.sql',
     '003_image_url_nullable.sql',
     '005_add_gender.sql',
+    '006_add_child_gender.sql',
   ];
 
   for (const file of migrations) {
@@ -81,6 +82,14 @@ async function main() {
       const hasGender = await columnExists(dbUrl, 'clothes', 'gender');
       if (hasGender) {
         console.log('Already applied: 005_add_gender.sql');
+        continue;
+      }
+    }
+
+    if (file === '006_add_child_gender.sql') {
+      const hasChildGender = await columnExists(dbUrl, 'children', 'gender');
+      if (hasChildGender) {
+        console.log('Already applied: 006_add_child_gender.sql');
         continue;
       }
     }
