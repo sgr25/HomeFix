@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
   // Build Supabase query from extracted filters
   let dbQuery = supabase
     .from('clothes')
-    .select('*, boxes(id, box_number, description), children(name, current_sizes)')
+    .select('*, boxes(id, box_number, description), children(name, current_size, current_sizes)')
     .order('updated_at', { ascending: false });
 
   if (filters.child_name) dbQuery = dbQuery.eq('child_name', filters.child_name);

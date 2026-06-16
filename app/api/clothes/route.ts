@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('clothes')
-      .select('*, boxes(id, box_number, description), children(name, current_sizes)')
+      .select('*, boxes(id, box_number, description), children(name, current_size, current_sizes)')
       .in('set_name', completeSets)
       .order('set_name', { ascending: true })
       .order('updated_at', { ascending: false });
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('clothes')
-    .select('*, boxes(id, box_number, description), children(name, current_sizes)')
+    .select('*, boxes(id, box_number, description), children(name, current_size, current_sizes)')
     .order('updated_at', { ascending: false });
 
   const child = searchParams.get('child');

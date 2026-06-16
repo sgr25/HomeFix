@@ -7,7 +7,7 @@ export async function POST() {
 
   const [{ data: children, error: childErr }, { data: boxedClothes, error: clothesErr }] =
     await Promise.all([
-      supabase.from('children').select('name, current_sizes').eq('active', true),
+      supabase.from('children').select('name, current_size, current_sizes').eq('active', true),
       supabase
         .from('clothes')
         .select('id, size, season, child_name, box_id, boxes(box_number)')

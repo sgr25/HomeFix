@@ -10,10 +10,31 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'ids required' }, { status: 400 });
   }
 
+  if (updates?.status === 'in_box' && !updates?.box_id) {
+    return NextResponse.json({ error: 'box_id required when status is in_box' }, { status: 400 });
+  }
+
   const results = [];
+  const skipped: { id: string; reason: string }[] = [];
 
   for (const id of ids) {
+    const { data: existing } = await supabase
+      .from('clothes')
+      .select('status')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (!existing) {
+      skipped.push({ id, reason: 'not_found' });
+      continue;
+    }
+
     const patch: Record<string, unknown> = { ...updates };
+
+    if ('child_name' in patch && !('status' in patch) && existing.status === 'in_box') {
+      skipped.push({ id, reason: 'in_box_cannot_assign_child' });
+      continue;
+    }
 
     if (patch.status === 'in_box' && !patch.box_id) {
       return NextResponse.json({ error: 'box_id required when status is in_box' }, { status: 400 });
@@ -36,7 +57,7 @@ export async function PATCH(request: NextRequest) {
     results.push(data);
   }
 
-  return NextResponse.json({ updated: results.length, items: results });
+  return NextResponse.json({ updated: results.length, skipped, items: results });
 }
 
 export async function DELETE(request: NextRequest) {

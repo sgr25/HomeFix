@@ -1,6 +1,32 @@
 import type { ClothingItem, Season, ClothingStatus, Gender, Child, ChildGender, ClothingType } from '@/types';
 import { DEFAULT_GENDER, DEFAULT_CLOTHING_TYPE } from '@/types';
 
+export const COMMON_SIZES = [
+  'NB', '0-3m', '3-6m', '6-12m', '12-18m', '18-24m',
+  '2Y', '3Y', '4Y', '5Y', '6Y', '7Y', '8Y', '9Y', '10Y', '12Y', '14Y',
+  'XS', 'S', 'M', 'L',
+] as const;
+
+export function syncChildSizes(current_size: unknown, current_sizes?: unknown): {
+  current_size: string;
+  current_sizes: string[];
+} {
+  if (typeof current_size === 'string' && current_size.trim()) {
+    const size = current_size.trim();
+    return { current_size: size, current_sizes: [size] };
+  }
+  if (Array.isArray(current_sizes) && current_sizes.length > 0) {
+    const size = String(current_sizes[0]).trim();
+    return { current_size: size, current_sizes: current_sizes.map(String) };
+  }
+  return { current_size: '', current_sizes: [] };
+}
+
+export function getChildCurrentSize(child: Pick<Child, 'current_size' | 'current_sizes'>): string {
+  if (child.current_size?.trim()) return child.current_size.trim();
+  return child.current_sizes?.[0]?.trim() ?? '';
+}
+
 export const CLOTHING_TYPE_VALUES = [
   'set', 'shirt', 'pants', 'skirt', 'jumper', 'pajamas',
   'overall', 'dress', 'underwear', 'tights', 'socks',
@@ -27,10 +53,9 @@ export const CLOTHING_TYPE_OPTIONS: { value: ClothingType; label: string }[] =
   CLOTHING_TYPE_VALUES.map((value) => ({ value, label: clothingTypeLabel[value] }));
 
 export function getClothingTypeOptions(): { value: ClothingType; label: string }[] {
-  return (
-    CLOTHING_TYPE_OPTIONS ??
-    CLOTHING_TYPE_VALUES.map((value) => ({ value, label: clothingTypeLabel[value] }))
-  );
+  return CLOTHING_TYPE_VALUES
+    .filter((value) => value !== 'unassigned')
+    .map((value) => ({ value, label: clothingTypeLabel[value] }));
 }
 
 export function isClothingType(value: unknown): value is ClothingType {
@@ -64,6 +89,8 @@ const seasonLabel: Record<Season, string> = {
   winter: 'חורף',
   transition: 'מעבר',
 };
+
+export { seasonLabel };
 
 const statusLabel: Record<ClothingStatus, string> = {
   in_closet: 'בארון',

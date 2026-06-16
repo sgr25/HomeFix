@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiContext } from '@/lib/auth';
-import { isChildGender } from '@/lib/clothes-utils';
+import { isChildGender, syncChildSizes } from '@/lib/clothes-utils';
 
 type Params = { params: Promise<{ name: string }> };
 
@@ -25,17 +25,19 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     const { data: current } = await supabase.from('children').select('*').eq('name', name).single();
     if (!current) return NextResponse.json({ error: 'ילד לא נמצא' }, { status: 404 });
 
-    const sizes = 'current_sizes' in body ? body.current_sizes : current.current_sizes;
+    const sizes = 'current_size' in body || 'current_sizes' in body
+      ? syncChildSizes(body.current_size, body.current_sizes ?? current.current_sizes)
+      : syncChildSizes(current.current_size, current.current_sizes);
     const gender = 'gender' in body && isChildGender(body.gender) ? body.gender : current.gender;
 
     await supabase.from('children').update({ active: false }).eq('name', name);
 
     if (conflict && !conflict.active) {
-      await supabase.from('children').update({ active: true, current_sizes: sizes, gender }).eq('name', newName);
+      await supabase.from('children').update({ active: true, ...sizes, gender }).eq('name', newName);
     } else {
       await supabase.from('children').insert({
         name: newName,
-        current_sizes: sizes,
+        ...sizes,
         gender,
         active: true,
         user_id: current.user_id ?? userId,
@@ -49,7 +51,11 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   }
 
   const updates: Record<string, unknown> = {};
-  if ('current_sizes' in body) updates.current_sizes = body.current_sizes;
+  if ('current_size' in body || 'current_sizes' in body) {
+    const synced = syncChildSizes(body.current_size, body.current_sizes);
+    updates.current_size = synced.current_size;
+    updates.current_sizes = synced.current_sizes;
+  }
   if ('active' in body) updates.active = body.active;
   if ('gender' in body) {
     if (!isChildGender(body.gender)) {

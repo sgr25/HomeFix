@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Sparkles, Package, WashingMachine, Shirt } from 'lucide-react';
+import { Loader2, Sparkles, Package, WashingMachine, Shirt, ShoppingBag } from 'lucide-react';
 import WeeklyStyleMatrix from '@/components/dashboard/WeeklyStyleMatrix';
 import SetupChecklist from '@/components/onboarding/SetupChecklist';
+import ShoppingGapsReport from '@/components/reports/ShoppingGapsReport';
 import { fetchJson } from '@/lib/api';
 import type { DayOutfit, WeatherDay, ClothingItem, Child, Box } from '@/types';
 
@@ -25,6 +26,7 @@ export default function DashboardPage() {
   const [seasonal, setSeasonal]     = useState('');
   const [seasonalLoading, setSeasonalLoading] = useState(false);
   const [seasonalError, setSeasonalError] = useState<string | null>(null);
+  const [shoppingReportOpen, setShoppingReportOpen] = useState(false);
 
   // Load stats
   useEffect(() => {
@@ -189,6 +191,29 @@ export default function DashboardPage() {
           loading={stylistLoading}
         />
       </div>
+
+      {/* Shopping gaps report */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-emerald-600" />
+              מה יש ומה צריך?
+            </h2>
+            <p className="text-sm text-slate-500">דוח חוסרים לקראת קניות — לפי ילד, עונה וסוג בגד</p>
+          </div>
+          <Button
+            onClick={() => setShoppingReportOpen(true)}
+            variant="outline"
+            className="gap-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            הפק דוח חוסרים וקניות
+          </Button>
+        </div>
+      </div>
+
+      <ShoppingGapsReport open={shoppingReportOpen} onOpenChange={setShoppingReportOpen} />
 
       {/* Seasonal Logistics Agent */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">

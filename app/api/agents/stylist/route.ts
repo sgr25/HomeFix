@@ -13,7 +13,7 @@ export async function GET() {
       .from('clothes')
       .select('id, child_name, size, season, image_url, clothing_type')
       .eq('status', 'in_closet'),
-    supabase.from('children').select('name, current_sizes').eq('active', true),
+    supabase.from('children').select('name, current_size, current_sizes').eq('active', true),
   ]);
 
   if (!closetClothes || !children) {

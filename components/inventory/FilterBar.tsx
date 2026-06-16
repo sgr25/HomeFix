@@ -125,7 +125,7 @@ export default function FilterBar({
           </SelectTrigger>
           <SelectContent position="popper" sideOffset={4}>
             <SelectItem value={ALL}>כל סוגי הבגדים</SelectItem>
-            {clothingOptions.map(({ value, label }) => (
+            {(clothingOptions ?? []).map(({ value, label }) => (
               <SelectItem key={value} value={value}>
                 {label}
               </SelectItem>

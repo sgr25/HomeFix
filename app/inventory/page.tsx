@@ -2,8 +2,9 @@
 
 import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, X, Loader2, Sparkles, CheckSquare, Square, Trash2, WashingMachine, Shirt } from 'lucide-react';
+import { Search, X, Loader2, Sparkles } from 'lucide-react';
 import ClothingCard from '@/components/inventory/ClothingCard';
+import BulkActionsBar from '@/components/inventory/BulkActionsBar';
 import FilterBar from '@/components/inventory/FilterBar';
 import AddClothingDialog from '@/components/inventory/AddClothingDialog';
 import PageHeader from '@/components/ui/PageHeader';
@@ -44,7 +45,6 @@ function InventoryContent() {
   const [smartLoading, setSmartLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkSaving, setBulkSaving] = useState(false);
 
@@ -176,14 +176,21 @@ function InventoryContent() {
     if (!selected.size) return;
     setBulkSaving(true);
     try {
-      await fetchJson('/api/clothes/bulk', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: [...selected], updates }),
-      });
-      notify.bulkUpdated(selected.size);
+      const res = await fetchJson<{ updated: number; skipped?: { id: string; reason: string }[] }>(
+        '/api/clothes/bulk',
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: [...selected], updates }),
+        }
+      );
+      const skipped = res.skipped?.length ?? 0;
+      if (skipped > 0) {
+        notify.error(`${res.updated} עודכנו, ${skipped} דולגו (פריטים בארגז לא ניתנים לשיוך ילד)`);
+      } else {
+        notify.bulkUpdated(res.updated);
+      }
       setSelected(new Set());
-      setSelectMode(false);
       if (smartResults !== null) handleSmartSearch();
       else load();
     } catch {
@@ -203,7 +210,6 @@ function InventoryContent() {
       });
       notify.deleted(`${selected.size} פריטים נמחקו`);
       setSelected(new Set());
-      setSelectMode(false);
       if (smartResults !== null) handleSmartSearch();
       else load();
     } catch {
@@ -221,7 +227,7 @@ function InventoryContent() {
   }, [baseItems, debouncedQuery, isSmartMode, sortKey]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-5" dir="rtl">
+    <div className={`p-6 max-w-7xl mx-auto space-y-5 ${selected.size > 0 ? 'pb-28 md:pb-24' : ''}`} dir="rtl">
       <PageHeader
         title="בגדים"
         description={
@@ -229,20 +235,7 @@ function InventoryContent() {
             ? `${displayItems.length} תוצאות לחיפוש AI: "${smartQuery}"`
             : `${displayItems.length} פריטים${debouncedQuery ? ` (מסונן: "${debouncedQuery}")` : ''}`
         }
-        action={
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant={selectMode ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => { setSelectMode(!selectMode); setSelected(new Set()); }}
-              className="gap-1"
-            >
-              {selectMode ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
-              {selectMode ? 'ביטול בחירה' : 'בחר פריטים'}
-            </Button>
-            <AddClothingDialog childrenList={children} boxes={boxes} onSaved={load} />
-          </div>
-        }
+        action={<AddClothingDialog childrenList={children} boxes={boxes} onSaved={load} />}
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -312,32 +305,18 @@ function InventoryContent() {
         />
       )}
 
-      {selectMode && selected.size > 0 && (
-        <div className="sticky top-0 z-30 flex flex-wrap gap-2 bg-white border border-slate-200 rounded-xl p-3 shadow-md">
-          <span className="text-sm text-slate-600 self-center">{selected.size} נבחרו</span>
-          <Button size="sm" variant="outline" disabled={bulkSaving} onClick={() => bulkUpdate({ status: 'laundry' })} className="gap-1">
-            <WashingMachine className="w-3.5 h-3.5" /> לכביסה
-          </Button>
-          <Button size="sm" variant="outline" disabled={bulkSaving} onClick={() => bulkUpdate({ status: 'in_closet' })} className="gap-1">
-            <Shirt className="w-3.5 h-3.5" /> לארון
-          </Button>
-          {boxes.length > 0 && (
-            <Select onValueChange={(boxId) => bulkUpdate({ status: 'in_box', box_id: boxId })}>
-              <SelectTrigger className="h-8 w-36 text-xs">
-                <SelectValue placeholder="לארגז..." />
-              </SelectTrigger>
-              <SelectContent>
-                {boxes.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>ארגז #{b.box_number}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          <Button size="sm" variant="destructive" disabled={bulkSaving} onClick={bulkDelete} className="gap-1">
-            <Trash2 className="w-3.5 h-3.5" /> מחק
-          </Button>
-        </div>
-      )}
+      <BulkActionsBar
+        selectedCount={selected.size}
+        boxes={boxes}
+        childrenList={children}
+        saving={bulkSaving}
+        onLaundry={() => bulkUpdate({ status: 'laundry' })}
+        onCloset={() => bulkUpdate({ status: 'in_closet' })}
+        onBox={(boxId) => bulkUpdate({ status: 'in_box', box_id: boxId })}
+        onAssignChild={(childName) => bulkUpdate({ child_name: childName })}
+        onDelete={bulkDelete}
+        onClear={() => setSelected(new Set())}
+      />
 
       {smartLoading ? (
         <div className="space-y-3">
@@ -374,7 +353,6 @@ function InventoryContent() {
                 allChildren={children}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
-                selectable={selectMode}
                 selected={selected.has(item.id)}
                 onToggleSelect={() => toggleSelect(item.id)}
               />

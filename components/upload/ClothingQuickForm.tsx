@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { genderDefaultFromChildName, childGenderLabel } from '@/lib/clothes-utils';
+import { genderDefaultFromChildName, childGenderLabel, COMMON_SIZES } from '@/lib/clothes-utils';
 import ClothingTypePicker from '@/components/inventory/ClothingTypePicker';
 import type { Child, Box, Season, ClothingStatus, Gender, PendingItem } from '@/types';
 
@@ -20,7 +20,6 @@ interface Props {
   onRemove: (id: string) => void;
 }
 
-const COMMON_SIZES = ['NB','0-3m','3-6m','6-12m','12-18m','18-24m','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y','12Y','14Y','XS','S','M','L'];
 
 const GENDER_OPTIONS: { value: Gender; label: string }[] = [
   { value: 'boys', label: 'בנים' },

@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     .from('clothes')
     .update(updates)
     .eq('id', id)
-    .select('*, boxes(id, box_number, description), children(name, current_sizes)')
+    .select('*, boxes(id, box_number, description), children(name, current_size, current_sizes)')
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

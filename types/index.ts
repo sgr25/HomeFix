@@ -22,6 +22,7 @@ export const DEFAULT_CLOTHING_TYPE: ClothingType = 'unassigned';
 
 export interface Child {
   name: string;
+  current_size: string;
   current_sizes: string[];
   active: boolean;
   gender: ChildGender | null;

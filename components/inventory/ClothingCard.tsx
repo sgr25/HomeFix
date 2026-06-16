@@ -24,7 +24,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import type { ClothingItem, Box, Child, Season, ClothingStatus, Gender, ClothingType } from '@/types';
-import { genderLabel, genderColor, genderDefaultFromChildName, childGenderLabel, clothingTypeLabel, normalizeClothingType } from '@/lib/clothes-utils';
+import { genderLabel, genderColor, genderDefaultFromChildName, childGenderLabel, clothingTypeLabel, normalizeClothingType, COMMON_SIZES } from '@/lib/clothes-utils';
 import ClothingTypePicker from '@/components/inventory/ClothingTypePicker';
 
 const seasonLabel: Record<string, string> = {
@@ -44,8 +44,6 @@ const statusColor: Record<string, string> = {
   laundry:   'bg-yellow-100 text-yellow-800',
   in_box:    'bg-blue-100 text-blue-800',
 };
-
-const COMMON_SIZES = ['NB','0-3m','3-6m','6-12m','12-18m','18-24m','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y','12Y','14Y','XS','S','M','L'];
 
 const GENDER_OPTIONS: { value: Gender; label: string }[] = [
   { value: 'boys', label: 'בנים' },
@@ -71,7 +69,6 @@ interface Props {
   onDelete?: (id: string) => void;
   onEdit?: (id: string, updates: Partial<ClothingItem>) => Promise<ClothingItem | void>;
   compact?: boolean;
-  selectable?: boolean;
   selected?: boolean;
   onToggleSelect?: () => void;
 }
@@ -115,7 +112,6 @@ export default function ClothingCard({
   onDelete,
   onEdit,
   compact = false,
-  selectable = false,
   selected = false,
   onToggleSelect,
 }: Props) {
@@ -337,60 +333,32 @@ export default function ClothingCard({
 
   return (
     <>
-      <Dialog open={open && !selectable} onOpenChange={(v) => { setOpen(v); if (!v) resetEdit(); }}>
-        {selectable ? (
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetEdit(); }}>
+        <DialogTrigger asChild>
           <div
             className={cn(
               'group relative bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer',
               compact ? 'w-28' : 'w-40',
               selected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200'
             )}
-            onClick={onToggleSelect}
-            role="checkbox"
-            aria-checked={selected}
-            aria-label={`בחר ${item.size}`}
           >
-            {selectable && (
-              <div className="absolute top-1.5 right-1.5 z-20">
+            {onToggleSelect && (
+              <button
+                type="button"
+                className="absolute top-1.5 right-1.5 z-20"
+                onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
+                role="checkbox"
+                aria-checked={selected}
+                aria-label={`בחר ${item.size}`}
+              >
                 <div className={cn(
                   'w-5 h-5 rounded border-2 flex items-center justify-center',
                   selected ? 'bg-blue-600 border-blue-600' : 'bg-white/90 border-slate-300'
                 )}>
                   {selected && <Check className="w-3 h-3 text-white" />}
                 </div>
-              </div>
+              </button>
             )}
-            {renderImageArea('card')}
-            <div className="p-2 space-y-1">
-              <div className="flex items-center justify-between gap-1 flex-wrap">
-                <span className="text-xs font-semibold text-slate-700">{item.size}</span>
-                <div className="flex gap-1 flex-wrap">
-                  <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', genderColor[item.gender ?? 'unassigned'])}>
-                    {genderLabel[item.gender ?? 'unassigned']}
-                  </span>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                    {seasonLabel[item.season]}
-                  </Badge>
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {clothingTypeLabel[normalizeClothingType(item.clothing_type)]}
-                  </Badge>
-                </div>
-              </div>
-              <div className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium w-fit', statusColor[item.status])}>
-                {statusLabel[item.status]}
-              </div>
-              {item.child_name && <p className="text-[10px] text-slate-500 truncate">{item.child_name}</p>}
-            </div>
-          </div>
-        ) : (
-        <DialogTrigger asChild>
-          <div
-            className={cn(
-              'group relative bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer',
-              compact ? 'w-28' : 'w-40',
-              'border-slate-200'
-            )}
-          >
             {renderImageArea('card')}
 
             <div className="p-2 space-y-1">
@@ -424,7 +392,7 @@ export default function ClothingCard({
               )}
             </div>
 
-            {onEdit && !selectable && (
+            {onEdit && (
               <div className="px-2 pb-2 flex gap-1" onClick={(e) => e.stopPropagation()}>
                 {item.status !== 'laundry' && (
                   <Button
@@ -453,7 +421,7 @@ export default function ClothingCard({
               </div>
             )}
 
-            {onDelete && !selectable && (
+            {onDelete && (
               <Button
                 variant="destructive"
                 size="icon"
@@ -466,7 +434,6 @@ export default function ClothingCard({
             )}
           </div>
         </DialogTrigger>
-        )}
 
         <DialogContent className="max-w-md max-h-[85vh] flex flex-col overflow-hidden p-0 gap-0" dir="rtl">
           <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
