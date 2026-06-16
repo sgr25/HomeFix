@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Sparkles, Package, WashingMachine, Shirt } from 'lucide-react';
@@ -106,11 +107,16 @@ export default function DashboardPage() {
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'סה״כ פריטים', value: stats.total,   icon: Shirt,         color: 'text-blue-600',   bg: 'bg-blue-50' },
-          { label: 'בכביסה',      value: stats.laundry,  icon: WashingMachine, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-          { label: 'בקופסאות',    value: stats.inBox,    icon: Package,        color: 'text-slate-600',  bg: 'bg-slate-100' },
-        ].map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label} className={`flex items-center gap-4 ${bg} rounded-2xl p-5 border border-white shadow-sm`}>
+          { label: 'סה״כ פריטים', value: stats.total,   href: '/inventory',              icon: Shirt,         color: 'text-blue-600',   bg: 'bg-blue-50' },
+          { label: 'בכביסה',      value: stats.laundry,  href: '/laundry',                icon: WashingMachine, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+          { label: 'בקופסאות',    value: stats.inBox,    href: '/boxes', icon: Package,        color: 'text-slate-600',  bg: 'bg-slate-100' },
+        ].map(({ label, value, href, icon: Icon, color, bg }) => (
+          <Link
+            key={label}
+            href={href}
+            aria-label={statsLoading ? `צפה ב${label}` : `צפה ב${label} — ${value} פריטים`}
+            className={`flex items-center gap-4 ${bg} rounded-2xl p-5 border border-white shadow-sm cursor-pointer transition-all hover:shadow-md hover:scale-[1.01]`}
+          >
             <div className={`w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm`}>
               <Icon className={`w-6 h-6 ${color}`} />
             </div>
@@ -121,7 +127,7 @@ export default function DashboardPage() {
               }
               <p className="text-sm text-slate-600">{label}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

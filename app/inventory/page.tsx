@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { Suspense, useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, X, Loader2, Sparkles, CheckSquare, Square, Trash2, WashingMachine, Shirt } from 'lucide-react';
 import ClothingCard from '@/components/inventory/ClothingCard';
 import FilterBar from '@/components/inventory/FilterBar';
@@ -13,15 +14,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { fetchJson } from '@/lib/api';
 import { filterClothes, sortClothes, clothingToPayload, type SortKey } from '@/lib/clothes-utils';
 import { notify } from '@/lib/toast';
-import type { Child, Box, ClothingItem } from '@/types';
+import type { Child, Box, ClothingItem, ClothingStatus } from '@/types';
 
 interface Filters { child: string; season: string; status: string; }
 
-export default function InventoryPage() {
+const VALID_STATUSES: ClothingStatus[] = ['in_closet', 'laundry', 'in_box'];
+
+function parseStatusParam(value: string | null): string {
+  return value && VALID_STATUSES.includes(value as ClothingStatus) ? value : '';
+}
+
+function InventoryContent() {
+  const searchParams = useSearchParams();
+  const statusFromUrl = parseStatusParam(searchParams.get('status'));
+
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [children, setChildren] = useState<Child[]>([]);
   const [boxes, setBoxes] = useState<Box[]>([]);
-  const [filters, setFilters] = useState<Filters>({ child: '', season: '', status: '' });
+  const [filters, setFilters] = useState<Filters>({ child: '', season: '', status: statusFromUrl });
   const [setsForAll, setSetsForAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>('updated_at');
@@ -42,6 +52,10 @@ export default function InventoryPage() {
     const t = setTimeout(() => setDebouncedQuery(quickQuery), 300);
     return () => clearTimeout(t);
   }, [quickQuery]);
+
+  useEffect(() => {
+    setFilters((prev) => (prev.status === statusFromUrl ? prev : { ...prev, status: statusFromUrl }));
+  }, [statusFromUrl]);
 
   useEffect(() => {
     Promise.all([
@@ -357,5 +371,22 @@ export default function InventoryPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 max-w-7xl mx-auto space-y-5" dir="rtl">
+          <Skeleton className="h-10 w-48" />
+          <div className="flex flex-wrap gap-4">
+            {[...Array(12)].map((_, i) => <Skeleton key={i} className="w-40 h-56 rounded-xl" />)}
+          </div>
+        </div>
+      }
+    >
+      <InventoryContent />
+    </Suspense>
   );
 }
