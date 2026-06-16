@@ -20,47 +20,20 @@ function loadEnv() {
   }
 }
 
-async function verifyInsertWorks(url, serviceKey) {
-  const res = await fetch(`${url}/rest/v1/clothes`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      Prefer: 'return=representation',
-    },
-    body: JSON.stringify({
-      size: '__migration_test__',
-      season: 'summer',
-      image_url: '',
-      status: 'in_closet',
-    }),
-  });
-
-  const body = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    const message =
-      typeof body.message === 'string'
-        ? body.message
-        : typeof body.error === 'string'
-          ? body.error
-          : `HTTP ${res.status}`;
-    return { ok: false, message };
+async function columnExists(dbUrl, table, column) {
+  const { Client } = await import('pg');
+  const client = new Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
+  await client.connect();
+  try {
+    const { rows } = await client.query(
+      `SELECT 1 FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2`,
+      [table, column]
+    );
+    return rows.length > 0;
+  } finally {
+    await client.end();
   }
-
-  const id = body?.[0]?.id ?? body?.id;
-  if (id) {
-    await fetch(`${url}/rest/v1/clothes?id=eq.${id}`, {
-      method: 'DELETE',
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-      },
-    });
-  }
-
-  return { ok: true };
 }
 
 async function runSql(dbUrl, sql) {
@@ -85,19 +58,11 @@ async function main() {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required in .env.local');
   }
 
-  const before = await verifyInsertWorks(url, serviceKey);
-  if (before.ok) {
-    console.log('Migration already applied: image_url accepts NULL.');
-    return;
-  }
-
-  console.log('Current issue:', before.message);
-
   if (!dbUrl) {
     console.error(
       'Cannot run DDL automatically without DATABASE_URL or SUPABASE_DB_URL in .env.local.\n' +
         'Add your Supabase Postgres connection string from Dashboard → Settings → Database,\n' +
-        'then run: node scripts/run-migrations.mjs'
+        'then run: npm run db:migrate'
     );
     process.exit(1);
   }
@@ -105,21 +70,42 @@ async function main() {
   const migrations = [
     '002_add_set_name.sql',
     '003_image_url_nullable.sql',
+    '005_add_gender.sql',
   ];
 
   for (const file of migrations) {
-    const sql = fs.readFileSync(path.join(root, 'supabase', 'migrations', file), 'utf8');
+    const filePath = path.join(root, 'supabase', 'migrations', file);
+    if (!fs.existsSync(filePath)) continue;
+
+    if (file === '005_add_gender.sql') {
+      const hasGender = await columnExists(dbUrl, 'clothes', 'gender');
+      if (hasGender) {
+        console.log('Already applied: 005_add_gender.sql');
+        continue;
+      }
+    }
+
+    const sql = fs.readFileSync(filePath, 'utf8');
     console.log(`Running ${file}...`);
-    await runSql(dbUrl, sql);
-    console.log(`Done: ${file}`);
+    try {
+      await runSql(dbUrl, sql);
+      console.log(`Done: ${file}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('already exists')) {
+        console.log(`Skipped ${file} (already exists)`);
+      } else {
+        throw err;
+      }
+    }
   }
 
-  const after = await verifyInsertWorks(url, serviceKey);
-  if (!after.ok) {
-    throw new Error(`Migration finished but verification failed: ${after.message}`);
+  const hasGender = await columnExists(dbUrl, 'clothes', 'gender');
+  if (hasGender) {
+    console.log('All migrations applied successfully.');
+  } else {
+    console.warn('Warning: gender column still missing after migrations.');
   }
-
-  console.log('All migrations applied successfully.');
 }
 
 main().catch((err) => {

@@ -23,6 +23,7 @@ function createBlankItem(): PendingItem {
     preview: null,
     size: '',
     season: '',
+    gender: '',
     status: 'in_closet',
     child_name: '',
     box_number: '',
@@ -92,6 +93,10 @@ export default function AddClothingDialog({ childrenList, boxes, onSaved }: Prop
       setItem((prev) => ({ ...prev, error: 'נא לבחור מידה ועונה' }));
       return;
     }
+    if (!item.gender) {
+      setItem((prev) => ({ ...prev, error: 'יש לבחור מגדר' }));
+      return;
+    }
     if (item.status === 'in_box' && !item.box_number) {
       setItem((prev) => ({ ...prev, error: 'נא לבחור ארגז' }));
       return;
@@ -126,6 +131,7 @@ export default function AddClothingDialog({ childrenList, boxes, onSaved }: Prop
           child_name: item.child_name && item.child_name !== '__none__' ? item.child_name : null,
           size: item.size,
           season: item.season,
+          gender: item.gender,
           image_url: url ?? null,
           status: item.status,
           box_id,

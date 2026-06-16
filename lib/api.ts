@@ -9,7 +9,12 @@ export async function fetchJson<T = unknown>(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<T> {
-  const res = await fetch(input, init);
+  let res: Response;
+  try {
+    res = await fetch(input, init);
+  } catch {
+    throw new ApiError('לא ניתן להתחבר לשרת — ודא שהשרת פועל', 0);
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const msg = typeof body.error === 'string' ? body.error : 'שגיאה — נסה שוב';

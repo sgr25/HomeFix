@@ -6,6 +6,7 @@ interface SmartFilters {
   child_name?: string;
   season?: 'summer' | 'winter' | 'transition';
   status?: 'in_closet' | 'laundry' | 'in_box';
+  gender?: 'boys' | 'girls' | 'unassigned';
   set_name?: string;
   free_text_query?: string;
 }
@@ -43,12 +44,14 @@ export async function POST(request: NextRequest) {
   "child_name": "<שם ילד מהרשימה אם מוזכר, אחרת אל תכלול>",
   "season": "<summer|winter|transition אם מוזכר, אחרת אל תכלול>",
   "status": "<in_closet|laundry|in_box אם מוזכר, אחרת אל תכלול>",
+  "gender": "<boys|girls|unassigned אם מוזכר, אחרת אל תכלול>",
   "set_name": "<שם סט מדויק אם מוזכר, אחרת אל תכלול>",
   "free_text_query": "<מילות חיפוש חופשיות אם יש (צבע, סוג בגד, וכד'), אחרת אל תכלול>"
 }
 
 מיפוי סטטוסים: "ארון"/"בארון" → in_closet, "כביסה" → laundry, "ארגז"/"מאוחסן" → in_box.
 מיפוי עונות: "קיץ"/"חם" → summer, "חורף"/"קר" → winter, "אביב"/"סתיו"/"מעבר" → transition.
+מיפוי מגדר: "בנים"/"בן"/"בגדי בנים" → boys, "בנות"/"בת"/"בגדי בנות" → girls, "ללא שיוך"/"יוניסקס"/"ניטרלי" → unassigned.
 השתמש אך ורק בשמות ילדים שמופיעים ברשימה. החזר JSON בלבד.
 `;
 
@@ -74,6 +77,7 @@ export async function POST(request: NextRequest) {
   if (filters.child_name) dbQuery = dbQuery.eq('child_name', filters.child_name);
   if (filters.season)     dbQuery = dbQuery.eq('season', filters.season);
   if (filters.status)     dbQuery = dbQuery.eq('status', filters.status);
+  if (filters.gender)     dbQuery = dbQuery.eq('gender', filters.gender);
   if (filters.set_name)   dbQuery = dbQuery.ilike('set_name', `%${filters.set_name}%`);
   if (filters.free_text_query) {
     const q = `%${filters.free_text_query}%`;

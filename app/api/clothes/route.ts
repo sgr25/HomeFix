@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiContext } from '@/lib/auth';
+import { normalizeClothingItems } from '@/lib/clothes-utils';
 
 export async function GET(request: NextRequest) {
   const { supabase } = await getApiContext();
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    return NextResponse.json(data);
+    return NextResponse.json(normalizeClothingItems(data ?? []));
   }
 
   let query = supabase
@@ -64,27 +65,44 @@ export async function GET(request: NextRequest) {
   const child = searchParams.get('child');
   const season = searchParams.get('season');
   const status = searchParams.get('status');
+  const gender = searchParams.get('gender');
   const box_id = searchParams.get('box_id');
 
   if (child)  query = query.eq('child_name', child);
   if (season) query = query.eq('season', season);
   if (status) query = query.eq('status', status);
+  if (gender) query = query.eq('gender', gender);
   if (box_id) query = query.eq('box_id', box_id);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    const msg = error.message ?? '';
+    if (gender && msg.includes('gender')) {
+      return NextResponse.json(
+        { error: 'עמודת מגדר חסרה במסד הנתונים — הרץ את המיגרציה 005_add_gender.sql ב-Supabase' },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-  return NextResponse.json(data);
+  return NextResponse.json(normalizeClothingItems(data ?? []));
 }
 
 export async function POST(request: NextRequest) {
   const { supabase, userId } = await getApiContext();
   const body = await request.json();
 
-  const { child_name, size, season, image_url, status, box_id, set_name } = body;
+  const { child_name, size, season, gender, image_url, status, box_id, set_name } = body;
 
-  if (!size || !season || !status) {
+  const validGenders = ['boys', 'girls', 'unassigned'];
+
+  if (!size || !season || !status || !gender) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  if (!validGenders.includes(gender)) {
+    return NextResponse.json({ error: 'Invalid gender value' }, { status: 400 });
   }
 
   if (status === 'in_box' && !box_id) {
@@ -95,6 +113,7 @@ export async function POST(request: NextRequest) {
     child_name: child_name || null,
     size,
     season,
+    gender,
     image_url: image_url ?? '',
     status,
     box_id: status === 'in_box' ? box_id : null,
@@ -108,7 +127,16 @@ export async function POST(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    const msg = error.message ?? '';
+    if (msg.includes('gender')) {
+      return NextResponse.json(
+        { error: 'עמודת מגדר חסרה במסד הנתונים — הרץ את המיגרציה 005_add_gender.sql ב-Supabase' },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json(data, { status: 201 });
 }

@@ -9,7 +9,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const { id } = await params;
   const body = await request.json();
 
-  const allowed = ['child_name', 'size', 'season', 'image_url', 'status', 'box_id', 'set_name'];
+  const allowed = ['child_name', 'size', 'season', 'gender', 'image_url', 'status', 'box_id', 'set_name'];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) {

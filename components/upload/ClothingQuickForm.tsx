@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import type { Child, Box, Season, ClothingStatus } from '@/types';
+import type { Child, Box, Season, ClothingStatus, Gender } from '@/types';
 
 export interface PendingItem {
   id: string;
@@ -14,6 +14,7 @@ export interface PendingItem {
   preview: string | null;
   size: string;
   season: Season | '';
+  gender: Gender | '';
   status: ClothingStatus;
   child_name: string;
   box_number: string;
@@ -32,6 +33,12 @@ interface Props {
 }
 
 const COMMON_SIZES = ['NB','0-3m','3-6m','6-12m','12-18m','18-24m','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y','12Y','14Y','XS','S','M','L'];
+
+const GENDER_OPTIONS: { value: Gender; label: string }[] = [
+  { value: 'boys', label: 'בנים' },
+  { value: 'girls', label: 'בנות' },
+  { value: 'unassigned', label: 'ללא שיוך' },
+];
 
 export default function ClothingQuickForm({ item, children, boxes, onChange, onRemove }: Props) {
   const set = (key: keyof PendingItem) => (value: string) => onChange(item.id, { [key]: value });
@@ -93,6 +100,29 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
           ))}
         </SelectContent>
       </Select>
+
+      {/* Gender */}
+      <div className="flex gap-1">
+        {GENDER_OPTIONS.map(({ value, label }) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onChange(item.id, { gender: value })}
+            className={cn(
+              'flex-1 text-[10px] py-1 rounded-md border transition-all duration-150',
+              item.gender === value
+                ? value === 'boys'
+                  ? 'bg-sky-600 text-white border-sky-600'
+                  : value === 'girls'
+                    ? 'bg-pink-600 text-white border-pink-600'
+                    : 'bg-slate-600 text-white border-slate-600'
+                : 'border-slate-300 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       {/* Season */}
       <div className="flex gap-1">

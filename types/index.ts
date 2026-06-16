@@ -1,5 +1,8 @@
 export type Season = 'summer' | 'winter' | 'transition';
 export type ClothingStatus = 'in_closet' | 'laundry' | 'in_box';
+export type Gender = 'boys' | 'girls' | 'unassigned';
+
+export const DEFAULT_GENDER: Gender = 'unassigned';
 
 export interface Child {
   name: string;
@@ -18,6 +21,7 @@ export interface ClothingItem {
   child_name: string | null;
   size: string;
   season: Season;
+  gender?: Gender;
   image_url: string | null;
   status: ClothingStatus;
   box_id: string | null;

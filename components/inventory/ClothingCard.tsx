@@ -23,7 +23,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import type { ClothingItem, Box, Child, Season, ClothingStatus } from '@/types';
+import type { ClothingItem, Box, Child, Season, ClothingStatus, Gender } from '@/types';
+import { genderLabel, genderColor } from '@/lib/clothes-utils';
 
 const seasonLabel: Record<string, string> = {
   summer: 'קיץ',
@@ -45,9 +46,16 @@ const statusColor: Record<string, string> = {
 
 const COMMON_SIZES = ['NB','0-3m','3-6m','6-12m','12-18m','18-24m','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y','12Y','14Y','XS','S','M','L'];
 
+const GENDER_OPTIONS: { value: Gender; label: string }[] = [
+  { value: 'boys', label: 'בנים' },
+  { value: 'girls', label: 'בנות' },
+  { value: 'unassigned', label: 'ללא שיוך' },
+];
+
 interface EditState {
   size: string;
   season: Season;
+  gender: Gender;
   status: ClothingStatus;
   child_name: string;
   box_id: string;
@@ -119,6 +127,7 @@ export default function ClothingCard({
   const [editState, setEditState] = useState<EditState>({
     size: item.size,
     season: item.season,
+    gender: item.gender ?? 'unassigned',
     status: item.status,
     child_name: item.child_name ?? '',
     box_id: item.box_id ?? '',
@@ -150,17 +159,19 @@ export default function ClothingCard({
     setEditState({
       size: item.size,
       season: item.season,
+      gender: item.gender ?? 'unassigned',
       status: item.status,
       child_name: item.child_name ?? '',
       box_id: item.box_id ?? '',
       set_name: item.set_name ?? '',
     });
-  }, [item.id, item.size, item.season, item.status, item.child_name, item.box_id, item.set_name, item.updated_at]);
+  }, [item.id, item.size, item.season, item.gender, item.status, item.child_name, item.box_id, item.set_name, item.updated_at]);
 
   const resetEdit = () => {
     setEditState({
       size: item.size,
       season: item.season,
+      gender: item.gender ?? 'unassigned',
       status: item.status,
       child_name: item.child_name ?? '',
       box_id: item.box_id ?? '',
@@ -173,6 +184,7 @@ export default function ClothingCard({
     setEditState({
       size: item.size,
       season: item.season,
+      gender: item.gender ?? 'unassigned',
       status: item.status,
       child_name: item.child_name ?? '',
       box_id: item.box_id ?? '',
@@ -188,6 +200,7 @@ export default function ClothingCard({
       const updates: Partial<ClothingItem> = {
         size: editState.size,
         season: editState.season,
+        gender: editState.gender,
         status: editState.status,
         child_name: editState.status !== 'in_box' ? (editState.child_name || null) : null,
         box_id: editState.status === 'in_box' ? (editState.box_id || null) : null,
@@ -334,9 +347,14 @@ export default function ClothingCard({
             <div className="p-2 space-y-1">
               <div className="flex items-center justify-between gap-1 flex-wrap">
                 <span className="text-xs font-semibold text-slate-700">{item.size}</span>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {seasonLabel[item.season]}
-                </Badge>
+                <div className="flex gap-1 flex-wrap">
+                  <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', genderColor[item.gender ?? 'unassigned'])}>
+                    {genderLabel[item.gender ?? 'unassigned']}
+                  </span>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {seasonLabel[item.season]}
+                  </Badge>
+                </div>
               </div>
               <div className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium w-fit', statusColor[item.status])}>
                 {statusLabel[item.status]}
@@ -358,9 +376,14 @@ export default function ClothingCard({
             <div className="p-2 space-y-1">
               <div className="flex items-center justify-between gap-1 flex-wrap">
                 <span className="text-xs font-semibold text-slate-700">{item.size}</span>
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                  {seasonLabel[item.season]}
-                </Badge>
+                <div className="flex gap-1 flex-wrap">
+                  <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium', genderColor[item.gender ?? 'unassigned'])}>
+                    {genderLabel[item.gender ?? 'unassigned']}
+                  </span>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {seasonLabel[item.season]}
+                  </Badge>
+                </div>
               </div>
 
               <div className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-medium w-fit', statusColor[item.status])}>
@@ -480,6 +503,31 @@ export default function ClothingCard({
                 </div>
 
                 <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">מגדר</label>
+                  <div className="flex gap-2">
+                    {GENDER_OPTIONS.map(({ value, label }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setEditState((p) => ({ ...p, gender: value }))}
+                        className={cn(
+                          'flex-1 py-1.5 rounded-lg border text-xs transition-all duration-150',
+                          editState.gender === value
+                            ? value === 'boys'
+                              ? 'bg-sky-600 text-white border-sky-600'
+                              : value === 'girls'
+                                ? 'bg-pink-600 text-white border-pink-600'
+                                : 'bg-slate-600 text-white border-slate-600'
+                            : 'border-slate-300 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
                   <label className="text-xs font-medium text-slate-600">סטטוס</label>
                   <div className="flex gap-2">
                     {(['in_closet', 'laundry', 'in_box'] as ClothingStatus[]).map((st) => (
@@ -561,6 +609,9 @@ export default function ClothingCard({
                 <div className="flex gap-2 flex-wrap">
                   <span className="font-semibold text-slate-700">מידה:</span>
                   <span>{item.size}</span>
+                  <span className={cn('text-[11px] px-2 py-0.5 rounded-full font-medium', genderColor[item.gender ?? 'unassigned'])}>
+                    {genderLabel[item.gender ?? 'unassigned']}
+                  </span>
                   <Badge variant="secondary">{seasonLabel[item.season]}</Badge>
                   <span className={cn('text-[11px] px-2 py-0.5 rounded-full font-medium', statusColor[item.status])}>
                     {statusLabel[item.status]}

@@ -10,6 +10,8 @@ import { fetchJson } from '@/lib/api';
 import { notify } from '@/lib/toast';
 import type { Box, ClothingItem } from '@/types';
 
+import { genderLabel } from '@/lib/clothes-utils';
+
 const seasonLabel: Record<string, string> = { summer: 'קיץ', winter: 'חורף', transition: 'מעבר' };
 
 interface Props {
@@ -54,6 +56,7 @@ ${items.map((i) => `
     <div class="info">
       <div class="size">${i.size}</div>
       <div>${seasonLabel[i.season]}</div>
+      <div>${genderLabel[i.gender ?? 'unassigned']}</div>
       ${i.child_name ? `<div>${i.child_name}</div>` : ''}
     </div>
   </div>`).join('')}
@@ -190,7 +193,7 @@ ${items.map((i) => `
                 <div
                   key={item.id}
                   className="flex flex-col items-center gap-1 w-24"
-                  title={`${item.size} — ${seasonLabel[item.season]}`}
+                  title={`${item.size} — ${seasonLabel[item.season]} — ${genderLabel[item.gender ?? 'unassigned']}`}
                 >
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-slate-100">
                     {item.image_url ? (
@@ -200,6 +203,7 @@ ${items.map((i) => `
                     )}
                   </div>
                   <p className="text-[10px] font-semibold text-slate-600">{item.size}</p>
+                  <p className="text-[10px] text-slate-500">{genderLabel[item.gender ?? 'unassigned']}</p>
                   {item.child_name && <p className="text-[10px] text-slate-400">{item.child_name}</p>}
                 </div>
               ))}

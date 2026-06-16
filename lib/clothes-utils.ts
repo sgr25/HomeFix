@@ -1,4 +1,18 @@
-import type { ClothingItem, Season, ClothingStatus } from '@/types';
+import type { ClothingItem, Season, ClothingStatus, Gender } from '@/types';
+import { DEFAULT_GENDER } from '@/types';
+
+export function normalizeGender(value: unknown): Gender {
+  if (value === 'boys' || value === 'girls' || value === 'unassigned') return value;
+  return DEFAULT_GENDER;
+}
+
+export function normalizeClothingItem(item: ClothingItem): ClothingItem {
+  return { ...item, gender: normalizeGender(item.gender) };
+}
+
+export function normalizeClothingItems(items: ClothingItem[]): ClothingItem[] {
+  return items.map(normalizeClothingItem);
+}
 
 const seasonLabel: Record<Season, string> = {
   summer: 'קיץ',
@@ -10,6 +24,18 @@ const statusLabel: Record<ClothingStatus, string> = {
   in_closet: 'בארון',
   laundry: 'כביסה',
   in_box: 'בארגז',
+};
+
+export const genderLabel: Record<Gender, string> = {
+  boys: 'בנים',
+  girls: 'בנות',
+  unassigned: 'ללא שיוך',
+};
+
+export const genderColor: Record<Gender, string> = {
+  boys: 'bg-sky-100 text-sky-800',
+  girls: 'bg-pink-100 text-pink-800',
+  unassigned: 'bg-slate-100 text-slate-600',
 };
 
 export type SortKey = 'updated_at' | 'size' | 'child_name' | 'season';
@@ -25,6 +51,7 @@ export function filterClothes(items: ClothingItem[], query: string): ClothingIte
       item.set_name,
       seasonLabel[item.season],
       statusLabel[item.status],
+      genderLabel[normalizeGender(item.gender)],
       item.boxes?.description,
       item.boxes?.box_number != null ? String(item.boxes.box_number) : null,
     ]
@@ -59,6 +86,7 @@ export function clothingToPayload(item: ClothingItem) {
     child_name: item.child_name,
     size: item.size,
     season: item.season,
+    gender: normalizeGender(item.gender),
     image_url: item.image_url,
     status: item.status,
     box_id: item.box_id,

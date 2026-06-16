@@ -10,6 +10,7 @@ interface Filters {
   child: string;
   season: string;
   status: string;
+  gender: string;
 }
 
 interface Props {
@@ -81,6 +82,18 @@ export default function FilterBar({ children, filters, onChange, setsForAll = fa
             <SelectItem value="in_closet">בארון</SelectItem>
             <SelectItem value="laundry">כביסה</SelectItem>
             <SelectItem value="in_box">בארגז</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={filters.gender || ALL} onValueChange={set('gender')}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="כל המגדרים" />
+          </SelectTrigger>
+          <SelectContent position="popper" sideOffset={4}>
+            <SelectItem value={ALL}>כל המגדרים</SelectItem>
+            <SelectItem value="boys">בנים</SelectItem>
+            <SelectItem value="girls">בנות</SelectItem>
+            <SelectItem value="unassigned">ללא שיוך</SelectItem>
           </SelectContent>
         </Select>
       </div>

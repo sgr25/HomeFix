@@ -16,7 +16,7 @@ import { filterClothes, sortClothes, clothingToPayload, type SortKey } from '@/l
 import { notify } from '@/lib/toast';
 import type { Child, Box, ClothingItem, ClothingStatus } from '@/types';
 
-interface Filters { child: string; season: string; status: string; }
+interface Filters { child: string; season: string; status: string; gender: string; }
 
 const VALID_STATUSES: ClothingStatus[] = ['in_closet', 'laundry', 'in_box'];
 
@@ -31,7 +31,7 @@ function InventoryContent() {
   const [items, setItems] = useState<ClothingItem[]>([]);
   const [children, setChildren] = useState<Child[]>([]);
   const [boxes, setBoxes] = useState<Box[]>([]);
-  const [filters, setFilters] = useState<Filters>({ child: '', season: '', status: statusFromUrl });
+  const [filters, setFilters] = useState<Filters>({ child: '', season: '', status: statusFromUrl, gender: '' });
   const [setsForAll, setSetsForAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>('updated_at');
@@ -76,6 +76,7 @@ function InventoryContent() {
       if (filters.child) params.set('child', filters.child);
       if (filters.season) params.set('season', filters.season);
       if (filters.status) params.set('status', filters.status);
+      if (filters.gender) params.set('gender', filters.gender);
     }
     fetchJson<ClothingItem[]>(`/api/clothes?${params}`)
       .then((d) => { setItems(Array.isArray(d) ? d : []); setLoading(false); })
@@ -239,7 +240,7 @@ function InventoryContent() {
             type="text"
             value={quickQuery}
             onChange={(e) => setQuickQuery(e.target.value)}
-            placeholder="חיפוש מהיר (מידה, סט, ילד)..."
+            placeholder="חיפוש מהיר (מידה, סט, ילד, מגדר)..."
             className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white shadow-sm"
             dir="rtl"
             disabled={isSmartMode}
