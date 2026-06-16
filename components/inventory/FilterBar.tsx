@@ -59,78 +59,80 @@ export default function FilterBar({
         </Button>
       )}
 
-      <div className={cn('flex flex-wrap gap-3 items-center', setsForAll && 'opacity-40 pointer-events-none')}>
-        <Select value={filters.child || ALL} onValueChange={set('child')}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="כל הילדים" />
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className={cn('flex flex-wrap gap-3 items-center', setsForAll && 'opacity-40 pointer-events-none')}>
+          <Select value={filters.child || ALL} onValueChange={set('child')}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="כל הילדים" />
+            </SelectTrigger>
+            <SelectContent position="popper" sideOffset={4}>
+              <SelectItem value={ALL}>כל הילדים</SelectItem>
+              {(childrenList ?? []).map((c) => (
+                <SelectItem key={c.name} value={c.name}>
+                  <span className="flex items-center gap-1.5">
+                    {c.name}
+                    {c.gender && (
+                      <Badge className={`text-[9px] px-1 py-0 ${childGenderColor[c.gender]}`}>
+                        {childGenderLabel[c.gender]}
+                      </Badge>
+                    )}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.season || ALL} onValueChange={set('season')}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="כל העונות" />
+            </SelectTrigger>
+            <SelectContent position="popper" sideOffset={4}>
+              <SelectItem value={ALL}>כל העונות</SelectItem>
+              <SelectItem value="summer">קיץ</SelectItem>
+              <SelectItem value="winter">חורף</SelectItem>
+              <SelectItem value="transition">מעבר</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.status || ALL} onValueChange={set('status')}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="כל הסטטוסים" />
+            </SelectTrigger>
+            <SelectContent position="popper" sideOffset={4}>
+              <SelectItem value={ALL}>כל הסטטוסים</SelectItem>
+              <SelectItem value="in_closet">בארון</SelectItem>
+              <SelectItem value="laundry">כביסה</SelectItem>
+              <SelectItem value="in_box">בארגז</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filters.gender || ALL} onValueChange={set('gender')}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="כל המגדרים" />
+            </SelectTrigger>
+            <SelectContent position="popper" sideOffset={4}>
+              <SelectItem value={ALL}>כל המגדרים</SelectItem>
+              <SelectItem value="boys">בנים</SelectItem>
+              <SelectItem value="girls">בנות</SelectItem>
+              <SelectItem value="unassigned">ללא שיוך</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Select value={filters.clothing_type || ALL} onValueChange={set('clothing_type')}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="כל סוגי הבגדים" />
           </SelectTrigger>
           <SelectContent position="popper" sideOffset={4}>
-            <SelectItem value={ALL}>כל הילדים</SelectItem>
-            {(childrenList ?? []).map((c) => (
-              <SelectItem key={c.name} value={c.name}>
-                <span className="flex items-center gap-1.5">
-                  {c.name}
-                  {c.gender && (
-                    <Badge className={`text-[9px] px-1 py-0 ${childGenderColor[c.gender]}`}>
-                      {childGenderLabel[c.gender]}
-                    </Badge>
-                  )}
-                </span>
+            <SelectItem value={ALL}>כל סוגי הבגדים</SelectItem>
+            {clothingOptions.map(({ value, label }) => (
+              <SelectItem key={value} value={value}>
+                {label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-
-        <Select value={filters.season || ALL} onValueChange={set('season')}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="כל העונות" />
-          </SelectTrigger>
-          <SelectContent position="popper" sideOffset={4}>
-            <SelectItem value={ALL}>כל העונות</SelectItem>
-            <SelectItem value="summer">קיץ</SelectItem>
-            <SelectItem value="winter">חורף</SelectItem>
-            <SelectItem value="transition">מעבר</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.status || ALL} onValueChange={set('status')}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="כל הסטטוסים" />
-          </SelectTrigger>
-          <SelectContent position="popper" sideOffset={4}>
-            <SelectItem value={ALL}>כל הסטטוסים</SelectItem>
-            <SelectItem value="in_closet">בארון</SelectItem>
-            <SelectItem value="laundry">כביסה</SelectItem>
-            <SelectItem value="in_box">בארגז</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={filters.gender || ALL} onValueChange={set('gender')}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="כל המגדרים" />
-          </SelectTrigger>
-          <SelectContent position="popper" sideOffset={4}>
-            <SelectItem value={ALL}>כל המגדרים</SelectItem>
-            <SelectItem value="boys">בנים</SelectItem>
-            <SelectItem value="girls">בנות</SelectItem>
-            <SelectItem value="unassigned">ללא שיוך</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
-
-      <Select value={filters.clothing_type || ALL} onValueChange={set('clothing_type')}>
-        <SelectTrigger className="w-44">
-          <SelectValue placeholder="כל סוגי הבגדים" />
-        </SelectTrigger>
-        <SelectContent position="popper" sideOffset={4}>
-          <SelectItem value={ALL}>כל סוגי הבגדים</SelectItem>
-          {clothingOptions.map(({ value, label }) => (
-            <SelectItem key={value} value={value}>
-              {label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
     </div>
   );
 }
