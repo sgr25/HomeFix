@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getApiContext } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
+  const { supabase } = await getApiContext();
   const { searchParams } = new URL(request.url);
 
   const setsForAll = searchParams.get('sets_for_all') === 'true';
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
+  const { supabase, userId } = await getApiContext();
   const body = await request.json();
 
   const { child_name, size, season, image_url, status, box_id, set_name } = body;
@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
     image_url: image_url ?? '',
     status,
     box_id: status === 'in_box' ? box_id : null,
+    user_id: userId,
   };
   if (set_name) row.set_name = set_name;
 

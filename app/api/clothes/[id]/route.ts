@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { createServiceClient } from '@/lib/supabase/server';
+import { getApiContext } from '@/lib/auth';
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: NextRequest, { params }: Params) {
+  const { supabase } = await getApiContext();
   const { id } = await params;
-  const supabase = await createClient();
   const body = await request.json();
 
   const allowed = ['child_name', 'size', 'season', 'image_url', 'status', 'box_id', 'set_name'];
@@ -16,16 +17,20 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
   }
 
-  // Enforce box_id nullity based on status
+  // Enforce box_id / child_name based on status
   if ('status' in updates) {
-    if (updates.status !== 'in_box') updates.box_id = null;
+    if (updates.status !== 'in_box') {
+      updates.box_id = null;
+    } else {
+      updates.child_name = null;
+    }
   }
 
   const { data, error } = await supabase
     .from('clothes')
     .update(updates)
     .eq('id', id)
-    .select()
+    .select('*, boxes(id, box_number, description), children(name, current_sizes)')
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -34,8 +39,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
+  const { supabase } = await getApiContext();
   const { id } = await params;
-  const supabase = await createClient();
   const serviceClient = createServiceClient();
 
   // Fetch the item to get the image URL before deleting

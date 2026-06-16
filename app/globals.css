@@ -42,6 +42,27 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Hover highlight for all native buttons */
+button:not(:disabled) {
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease,
+    filter 0.15s ease;
+}
+
+button:not(:disabled):hover {
+  outline: 2px solid hsl(var(--ring) / 0.25);
+  outline-offset: 2px;
+}
+
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
 /* Print: hide sidebar for manifest printing */
 @media print {
   .no-print { display: none !important; }

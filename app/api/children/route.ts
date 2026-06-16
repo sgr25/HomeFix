@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getApiContext } from '@/lib/auth';
 
 export async function GET() {
-  const supabase = await createClient();
+  const { supabase } = await getApiContext();
 
   const { data, error } = await supabase
     .from('children')
@@ -16,7 +16,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
+  const { supabase, userId } = await getApiContext();
   const { name: rawName, current_sizes } = await request.json();
   const name = typeof rawName === 'string' ? rawName.trim() : '';
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('children')
-      .update({ active: true, current_sizes: sizes })
+      .update({ active: true, current_sizes: sizes, user_id: userId })
       .eq('name', name)
       .select()
       .single();
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('children')
-    .insert({ name, current_sizes: sizes })
+    .insert({ name, current_sizes: sizes, user_id: userId })
     .select()
     .single();
 

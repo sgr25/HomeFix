@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getApiContext } from '@/lib/auth';
 import { getStylistModel } from '@/lib/gemini';
 import { getWeeklyForecast } from '@/lib/weather';
 import type { DayOutfit } from '@/types';
 
 export async function GET() {
-  const supabase = await createClient();
+  const { supabase } = await getApiContext();
 
   const [forecastResult, { data: closetClothes }, { data: children }] = await Promise.all([
     getWeeklyForecast().catch(() => null),
@@ -66,7 +66,7 @@ Return the result as a JSON array matching the schema exactly.
 
 /** Mark recommended items as laundry (Worn Today) */
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const { supabase } = await getApiContext();
   const { item_ids }: { item_ids: string[] } = await request.json();
 
   if (!item_ids?.length) {

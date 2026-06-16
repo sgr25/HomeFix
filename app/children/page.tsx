@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import ChildCard from '@/components/children/ChildCard';
+import PageHeader from '@/components/ui/PageHeader';
+import EmptyState from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { fetchJson } from '@/lib/api';
+import { notify } from '@/lib/toast';
 import type { Child, ClothingItem } from '@/types';
 
 const COMMON_SIZES = ['NB','0-3m','3-6m','6-12m','12-18m','18-24m','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y','12Y','14Y','XS','S','M','L'];
@@ -17,17 +21,16 @@ export default function ChildrenPage() {
   const [newSizes, setNewSizes]   = useState<string[]>([]);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
-  const [success, setSuccess]     = useState('');
 
   const load = () =>
     Promise.all([
-      fetch('/api/children').then((r) => r.json()),
-      fetch('/api/clothes').then((r) => r.json()),
+      fetchJson<Child[]>('/api/children'),
+      fetchJson<ClothingItem[]>('/api/clothes'),
     ]).then(([c, cl]) => {
       setChildren(Array.isArray(c) ? c : []);
       setClothes(Array.isArray(cl) ? cl : []);
       setLoading(false);
-    });
+    }).catch(() => { setLoading(false); notify.error(); });
 
   useEffect(() => { load(); }, []);
 
@@ -43,29 +46,22 @@ export default function ChildrenPage() {
     if (children.some((c) => c.name === name)) { setError('ילד בשם זה כבר קיים'); return; }
 
     setError('');
-    setSuccess('');
     setSaving(true);
 
     try {
-      const res = await fetch('/api/children', {
+      await fetchJson('/api/children', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, current_sizes: newSizes }),
       });
 
-      const body = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setError(typeof body.error === 'string' ? body.error : 'שגיאה בשמירה');
-        return;
-      }
-
       setNewName('');
       setNewSizes([]);
-      setSuccess(`${name} נשמר בהצלחה`);
+      notify.saved(`${name} נשמר בהצלחה`);
       await load();
-    } catch {
-      setError('שגיאה בשמירה — נסה שוב');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'שגיאה בשמירה — נסה שוב');
+      notify.error();
     } finally {
       setSaving(false);
     }
@@ -76,11 +72,7 @@ export default function ChildrenPage() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6" dir="rtl">
-      {/* Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">ילדים</h1>
-        <p className="text-sm text-slate-500">ניהול ילדים ומידות נוכחיות</p>
-      </div>
+      <PageHeader title="ילדים" description="ניהול ילדים ומידות נוכחיות" />
 
       {/* Add child form */}
       <form
@@ -94,18 +86,12 @@ export default function ChildrenPage() {
           <input
             type="text"
             value={newName}
-            onChange={(e) => { setNewName(e.target.value); setError(''); setSuccess(''); }}
+            onChange={(e) => { setNewName(e.target.value); setError(''); }}
             className="border border-slate-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
             placeholder="למשל: יואב, שירה..."
             dir="rtl"
           />
           {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-          {success && (
-            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-              <Check className="w-3 h-3" />
-              {success}
-            </p>
-          )}
         </div>
 
         <div>
@@ -115,10 +101,10 @@ export default function ChildrenPage() {
               <button
                 key={s}
                 onClick={() => toggleNewSize(s)}
-                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-150 ${
                   newSizes.includes(s)
                     ? 'bg-purple-600 text-white border-purple-600'
-                    : 'border-slate-300 text-slate-600 hover:border-purple-400'
+                    : 'border-slate-300 text-slate-600 hover:border-purple-400 hover:bg-purple-50'
                 }`}
               >
                 {s}
@@ -145,10 +131,7 @@ export default function ChildrenPage() {
           {[1, 2].map((i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
         </div>
       ) : children.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
-          <p className="text-lg">אין ילדים עדיין</p>
-          <p className="text-sm">הוסף ילד/ה ראשון/ה למעלה</p>
-        </div>
+        <EmptyState title="אין ילדים עדיין" description="הוסף ילד/ה ראשון/ה למעלה" />
       ) : (
         <div className="space-y-3">
           {children.map((child) => (

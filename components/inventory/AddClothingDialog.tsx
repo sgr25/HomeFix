@@ -13,6 +13,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { notify } from '@/lib/toast';
 import type { Child, Box } from '@/types';
 
 function createBlankItem(): PendingItem {
@@ -137,9 +138,12 @@ export default function AddClothingDialog({ childrenList, boxes, onSaved }: Prop
       }
 
       onSaved();
+      notify.itemSaved();
       setOpen(false);
       resetForm();
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'שגיאה';
+      notify.error(msg);
       setItem((prev) => ({
         ...prev,
         uploading: false,

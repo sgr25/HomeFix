@@ -5,6 +5,8 @@ import { Pencil, Trash2, Check, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { fetchJson } from '@/lib/api';
+import { notify } from '@/lib/toast';
 import type { Child } from '@/types';
 
 const COMMON_SIZES = ['NB','0-3m','3-6m','6-12m','12-18m','18-24m','2Y','3Y','4Y','5Y','6Y','7Y','8Y','9Y','10Y','12Y','14Y','XS','S','M','L'];
@@ -16,10 +18,11 @@ interface Props {
 }
 
 export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
-  const [editing, setEditing]     = useState(false);
-  const [sizes, setSizes]         = useState<string[]>(child.current_sizes);
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(child.name);
+  const [sizes, setSizes] = useState<string[]>(child.current_sizes);
   const [customSize, setCustomSize] = useState('');
-  const [saving, setSaving]       = useState(false);
+  const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const toggleSize = (size: string) => {
@@ -36,36 +39,59 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
 
   const saveEdit = async () => {
     setSaving(true);
-    await fetch(`/api/children/${encodeURIComponent(child.name)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ current_sizes: sizes }),
-    });
-    setSaving(false);
-    setEditing(false);
-    onUpdated();
+    try {
+      const body: Record<string, unknown> = { current_sizes: sizes };
+      if (name.trim() !== child.name) body.new_name = name.trim();
+      await fetchJson(`/api/children/${encodeURIComponent(child.name)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      notify.saved();
+      setEditing(false);
+      onUpdated();
+    } catch (err) {
+      notify.error(err instanceof Error ? err.message : undefined);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const cancelEdit = () => {
+    setName(child.name);
     setSizes(child.current_sizes);
     setEditing(false);
   };
 
   const deleteChild = async () => {
-    await fetch(`/api/children/${encodeURIComponent(child.name)}`, { method: 'DELETE' });
-    onUpdated();
+    try {
+      await fetchJson(`/api/children/${encodeURIComponent(child.name)}`, { method: 'DELETE' });
+      notify.deleted(`${child.name} הוסר`);
+      onUpdated();
+    } catch {
+      notify.error();
+    }
   };
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
             <User className="w-5 h-5 text-purple-600" />
           </div>
           <div>
-            <p className="font-bold text-slate-800 text-sm">{child.name}</p>
+            {editing ? (
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-8 text-sm font-bold w-32"
+                dir="rtl"
+                aria-label="שם ילד"
+              />
+            ) : (
+              <p className="font-bold text-slate-800 text-sm">{child.name}</p>
+            )}
             <p className="text-xs text-slate-500">{clothesCount} פריטים משויכים</p>
           </div>
         </div>
@@ -78,17 +104,17 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
                 variant="outline"
                 className="w-8 h-8"
                 onClick={() => setEditing(true)}
-                title="ערוך מידות"
+                aria-label="ערוך ילד"
               >
                 <Pencil className="w-4 h-4" />
               </Button>
               {confirmDelete ? (
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-red-600">למחוק?</span>
-                  <Button size="icon" variant="destructive" className="w-7 h-7" onClick={deleteChild}>
+                  <Button size="icon" variant="destructive" className="w-7 h-7" onClick={deleteChild} aria-label="אשר מחיקה">
                     <Check className="w-3 h-3" />
                   </Button>
-                  <Button size="icon" variant="outline" className="w-7 h-7" onClick={() => setConfirmDelete(false)}>
+                  <Button size="icon" variant="outline" className="w-7 h-7" onClick={() => setConfirmDelete(false)} aria-label="ביטול">
                     <X className="w-3 h-3" />
                   </Button>
                 </div>
@@ -98,7 +124,7 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
                   variant="outline"
                   className="w-8 h-8 text-red-500 hover:text-red-600 hover:border-red-300"
                   onClick={() => setConfirmDelete(true)}
-                  title="מחק ילד"
+                  aria-label="מחק ילד"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -108,7 +134,6 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
         </div>
       </div>
 
-      {/* Sizes display / edit */}
       <div className="border-t border-slate-100 px-5 py-4">
         {editing ? (
           <div className="space-y-3">
@@ -118,10 +143,10 @@ export default function ChildCard({ child, clothesCount, onUpdated }: Props) {
                 <button
                   key={s}
                   onClick={() => toggleSize(s)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-150 ${
                     sizes.includes(s)
                       ? 'bg-purple-600 text-white border-purple-600'
-                      : 'border-slate-300 text-slate-600 hover:border-purple-400'
+                      : 'border-slate-300 text-slate-600 hover:border-purple-400 hover:bg-purple-50'
                   }`}
                 >
                   {s}

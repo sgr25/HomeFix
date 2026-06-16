@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import BoxCard from '@/components/boxes/BoxCard';
+import PageHeader from '@/components/ui/PageHeader';
+import EmptyState from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus } from 'lucide-react';
+import { fetchJson } from '@/lib/api';
+import { notify } from '@/lib/toast';
 import type { Box, ClothingItem } from '@/types';
 
 export default function BoxesPage() {
@@ -17,40 +21,40 @@ export default function BoxesPage() {
 
   const load = () =>
     Promise.all([
-      fetch('/api/boxes').then((r) => r.json()),
-      fetch('/api/clothes?status=in_box').then((r) => r.json()),
+      fetchJson<Box[]>('/api/boxes'),
+      fetchJson<ClothingItem[]>('/api/clothes?status=in_box'),
     ]).then(([b, c]) => {
       setBoxes(Array.isArray(b) ? b : []);
       setClothes(Array.isArray(c) ? c : []);
       setLoading(false);
-    });
+    }).catch(() => { setLoading(false); notify.error(); });
 
   useEffect(() => { load(); }, []);
 
   const createBox = async () => {
     if (!newBoxNum) return;
     setCreating(true);
-    await fetch('/api/boxes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ box_number: Number(newBoxNum), description: newBoxDesc || null }),
-    });
-    setNewBoxNum('');
-    setNewBoxDesc('');
-    setCreating(false);
-    load();
+    try {
+      await fetchJson('/api/boxes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ box_number: Number(newBoxNum), description: newBoxDesc || null }),
+      });
+      notify.saved('הקופסה נוצרה');
+      setNewBoxNum('');
+      setNewBoxDesc('');
+      load();
+    } catch (err) {
+      notify.error(err instanceof Error ? err.message : undefined);
+    } finally {
+      setCreating(false);
+    }
   };
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6" dir="rtl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">קופסאות אחסון</h1>
-          <p className="text-sm text-slate-500">ניהול קופסאות ותוכנן</p>
-        </div>
-      </div>
+      <PageHeader title="קופסאות אחסון" description="ניהול קופסאות ותוכנן" />
 
-      {/* Add box */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap gap-3 items-end">
         <div>
           <label className="text-xs text-slate-500 block mb-1">מספר קופסה חדשה</label>
@@ -79,16 +83,12 @@ export default function BoxesPage() {
         </Button>
       </div>
 
-      {/* Box list */}
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-2xl" />)}
         </div>
       ) : boxes.length === 0 ? (
-        <div className="text-center py-16 text-slate-400">
-          <p className="text-lg">אין קופסאות עדיין</p>
-          <p className="text-sm">צור קופסה ראשונה למעלה</p>
-        </div>
+        <EmptyState title="אין קופסאות עדיין" description="צור קופסה ראשונה למעלה" />
       ) : (
         <div className="space-y-3">
           {boxes.map((box) => (
@@ -96,6 +96,7 @@ export default function BoxesPage() {
               key={box.id}
               box={box}
               items={clothes.filter((c) => c.box_id === box.id)}
+              onUpdated={load}
             />
           ))}
         </div>

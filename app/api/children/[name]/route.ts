@@ -1,12 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getApiContext } from '@/lib/auth';
 
 type Params = { params: Promise<{ name: string }> };
 
 export async function PATCH(request: NextRequest, { params }: Params) {
+  const { supabase, userId } = await getApiContext();
   const { name } = await params;
-  const supabase = await createClient();
   const body = await request.json();
+
+  if (typeof body.new_name === 'string' && body.new_name.trim() && body.new_name.trim() !== name) {
+    const newName = body.new_name.trim();
+
+    const { data: conflict } = await supabase
+      .from('children')
+      .select('name, active')
+      .eq('name', newName)
+      .maybeSingle();
+
+    if (conflict?.active) {
+      return NextResponse.json({ error: 'ילד בשם זה כבר קיים' }, { status: 409 });
+    }
+
+    const { data: current } = await supabase.from('children').select('*').eq('name', name).single();
+    if (!current) return NextResponse.json({ error: 'ילד לא נמצא' }, { status: 404 });
+
+    const sizes = 'current_sizes' in body ? body.current_sizes : current.current_sizes;
+
+    await supabase.from('children').update({ active: false }).eq('name', name);
+
+    if (conflict && !conflict.active) {
+      await supabase.from('children').update({ active: true, current_sizes: sizes }).eq('name', newName);
+    } else {
+      await supabase.from('children').insert({
+        name: newName,
+        current_sizes: sizes,
+        active: true,
+        user_id: current.user_id ?? userId,
+      });
+    }
+
+    await supabase.from('clothes').update({ child_name: newName }).eq('child_name', name);
+
+    const { data } = await supabase.from('children').select('*').eq('name', newName).single();
+    return NextResponse.json(data);
+  }
 
   const updates: Record<string, unknown> = {};
   if ('current_sizes' in body) updates.current_sizes = body.current_sizes;
@@ -25,10 +62,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
+  const { supabase } = await getApiContext();
   const { name } = await params;
-  const supabase = await createClient();
 
-  // Soft-delete: mark inactive and unassign clothes
   const { error: childError } = await supabase
     .from('children')
     .update({ active: false })
@@ -36,7 +72,6 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
 
   if (childError) return NextResponse.json({ error: childError.message }, { status: 500 });
 
-  // Unassign all clothes belonging to this child
   const { error: clothesError } = await supabase
     .from('clothes')
     .update({ child_name: null })

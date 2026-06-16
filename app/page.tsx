@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, Sparkles, Package, WashingMachine, Shirt } from 'lucide-react';
 import WeeklyStyleMatrix from '@/components/dashboard/WeeklyStyleMatrix';
-import type { DayOutfit, WeatherDay, ClothingItem } from '@/types';
+import SetupChecklist from '@/components/onboarding/SetupChecklist';
+import { fetchJson } from '@/lib/api';
+import { notify } from '@/lib/toast';
+import type { DayOutfit, WeatherDay, ClothingItem, Child, Box } from '@/types';
 
 export default function DashboardPage() {
   const [outfits, setOutfits]       = useState<DayOutfit[]>([]);
@@ -15,6 +18,8 @@ export default function DashboardPage() {
 
   const [stats, setStats] = useState({ total: 0, laundry: 0, inBox: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
+  const [childrenCount, setChildrenCount] = useState(0);
+  const [boxesCount, setBoxesCount] = useState(0);
 
   const [seasonal, setSeasonal]     = useState('');
   const [seasonalLoading, setSeasonalLoading] = useState(false);
@@ -22,20 +27,24 @@ export default function DashboardPage() {
   // Load stats
   useEffect(() => {
     Promise.all([
-      fetch('/api/clothes').then((r) => r.json()),
-    ]).then(([all]) => {
+      fetchJson<ClothingItem[]>('/api/clothes'),
+      fetchJson<Child[]>('/api/children'),
+      fetchJson<Box[]>('/api/boxes'),
+    ]).then(([all, children, boxes]) => {
       if (Array.isArray(all)) {
         setStats({
           total:   all.length,
-          laundry: all.filter((c: ClothingItem) => c.status === 'laundry').length,
-          inBox:   all.filter((c: ClothingItem) => c.status === 'in_box').length,
+          laundry: all.filter((c) => c.status === 'laundry').length,
+          inBox:   all.filter((c) => c.status === 'in_box').length,
         });
         const map: Record<string, ClothingItem> = {};
-        all.forEach((c: ClothingItem) => { map[c.id] = c; });
+        all.forEach((c) => { map[c.id] = c; });
         setClothesMap(map);
       }
+      setChildrenCount(Array.isArray(children) ? children.length : 0);
+      setBoxesCount(Array.isArray(boxes) ? boxes.length : 0);
       setStatsLoading(false);
-    });
+    }).catch(() => setStatsLoading(false));
   }, []);
 
   const loadStylist = useCallback(() => {
@@ -87,6 +96,12 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold text-slate-800">ארון חכם</h1>
         <p className="text-slate-500">ניהול מלאי בגדים לכל המשפחה</p>
       </div>
+
+      <SetupChecklist
+        childrenCount={childrenCount}
+        clothesCount={stats.total}
+        boxesCount={boxesCount}
+      />
 
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

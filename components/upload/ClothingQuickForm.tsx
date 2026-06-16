@@ -101,10 +101,10 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
             key={s}
             onClick={() => onChange(item.id, { season: s })}
             className={cn(
-              'flex-1 text-[10px] py-1 rounded-md border transition-colors',
+              'flex-1 text-[10px] py-1 rounded-md border transition-all duration-150',
               item.season === s
                 ? 'bg-blue-600 text-white border-blue-600'
-                : 'border-slate-300 text-slate-600 hover:border-blue-400'
+                : 'border-slate-300 text-slate-600 hover:border-blue-400 hover:bg-blue-50'
             )}
           >
             {s === 'summer' ? '☀️' : s === 'winter' ? '❄️' : '🌤️'}
@@ -119,10 +119,10 @@ export default function ClothingQuickForm({ item, children, boxes, onChange, onR
             key={st}
             onClick={() => onChange(item.id, { status: st })}
             className={cn(
-              'flex-1 text-[10px] py-1 rounded-md border transition-colors',
+              'flex-1 text-[10px] py-1 rounded-md border transition-all duration-150',
               item.status === st
                 ? 'bg-slate-700 text-white border-slate-700'
-                : 'border-slate-300 text-slate-600 hover:border-slate-500'
+                : 'border-slate-300 text-slate-600 hover:border-slate-500 hover:bg-slate-50'
             )}
           >
             {st === 'in_closet' ? 'בארון' : 'בקופסה'}

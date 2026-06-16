@@ -3,8 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import Dropzone from '@/components/upload/Dropzone';
 import ClothingQuickForm, { type PendingItem } from '@/components/upload/ClothingQuickForm';
+import PageHeader from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Loader2, Save, PlusCircle } from 'lucide-react';
+import { fetchJson } from '@/lib/api';
+import { notify } from '@/lib/toast';
 import type { Child, Box } from '@/types';
 
 export default function UploadPage() {
@@ -15,12 +18,12 @@ export default function UploadPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/children').then((r) => r.json()),
-      fetch('/api/boxes').then((r) => r.json()),
+      fetchJson<Child[]>('/api/children'),
+      fetchJson<Box[]>('/api/boxes'),
     ]).then(([c, b]) => {
       setChildren(Array.isArray(c) ? c : []);
       setBoxes(Array.isArray(b) ? b : []);
-    });
+    }).catch(() => notify.error());
   }, []);
 
   const handleFiles = useCallback((files: File[]) => {
@@ -75,6 +78,8 @@ export default function UploadPage() {
     if (!pending.length) return;
     setSaving(true);
 
+    let successCount = 0;
+
     for (const item of pending) {
       if (!item.size || !item.season) {
         updateItem(item.id, { error: 'נא לבחור מידה ועונה' });
@@ -128,6 +133,7 @@ export default function UploadPage() {
         }
 
         updateItem(item.id, { uploading: false, saved: true });
+        successCount++;
       } catch (err) {
         updateItem(item.id, {
           uploading: false,
@@ -137,24 +143,25 @@ export default function UploadPage() {
     }
 
     setSaving(false);
+    if (successCount > 0) notify.uploaded(successCount);
   };
 
   const unsavedCount = items.filter((i) => !i.saved).length;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6" dir="rtl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">הוספת בגד</h1>
-          <p className="text-sm text-slate-500">גרור תמונות או הוסף פריט ללא תמונה</p>
-        </div>
-        {unsavedCount > 0 && (
-          <Button onClick={saveAll} disabled={saving} className="gap-2">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            שמור הכל ({unsavedCount})
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="הוספת בגד"
+        description="גרור תמונות או הוסף פריט ללא תמונה"
+        action={
+          unsavedCount > 0 ? (
+            <Button onClick={saveAll} disabled={saving} className="gap-2">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              שמור הכל ({unsavedCount})
+            </Button>
+          ) : undefined
+        }
+      />
 
       <Dropzone onFiles={handleFiles} />
 

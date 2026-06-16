@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getApiContext } from '@/lib/auth';
 import { flashModel } from '@/lib/gemini';
 
 interface SmartFilters {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'query is required' }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const { supabase } = await getApiContext();
 
   // Fetch context for the model
   const [{ data: activeChildren }, { data: boxes }] = await Promise.all([

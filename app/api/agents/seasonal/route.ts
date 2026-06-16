@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { getApiContext } from '@/lib/auth';
 import { proModel } from '@/lib/gemini';
 
 export async function POST() {
-  const supabase = await createClient();
+  const { supabase } = await getApiContext();
 
   const [{ data: children }, { data: boxedClothes }] = await Promise.all([
     supabase.from('children').select('name, current_sizes').eq('active', true),
@@ -40,7 +40,7 @@ ${JSON.stringify(children, null, 2)}
 
 **בגדים בקופסאות:**
 ${JSON.stringify(
-  boxedClothes.map((c) => ({
+  boxedClothes.map((c: { id: string; size: string; season: string; child_name: string | null; boxes: unknown }) => ({
     מזהה: c.id,
     מידה: c.size,
     עונה: c.season,
